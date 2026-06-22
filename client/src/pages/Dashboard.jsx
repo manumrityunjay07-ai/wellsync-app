@@ -175,6 +175,44 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Today's Tasks + Streak */}
+        <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1rem', color: 'var(--text)' }}>Today's Health Tasks</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(251,191,36,0.1)', padding: '0.3rem 0.75rem', borderRadius: 99, border: '1px solid rgba(251,191,36,0.3)' }}>
+              <span style={{ fontSize: '1rem' }}>🔥</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#F59E0B' }}>
+                {todayScore ? Math.max(1, Math.floor(todayScore.score / 10)) : 0} day streak
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem' }}>
+            {[
+              { label: 'Log your mood', done: !!todayScore?.mood_score, path: '/mental', emoji: '🧠' },
+              { label: 'Log a workout', done: !!todayScore?.fitness_score, path: '/fitness', emoji: '💪' },
+              { label: 'Log your meals', done: !!todayScore?.nutrition_score, path: '/nutrition', emoji: '🥗' },
+              { label: 'Log your sleep', done: !!todayScore?.sleep_score, path: '/sleep', emoji: '🌙' },
+              { label: 'Log your vitals', done: !!todayScore?.vitals_score, path: '/vitals', emoji: '❤️' },
+              { label: 'Complete a habit', done: !!todayScore?.wellness_score, path: '/wellness', emoji: '✨' },
+            ].map((task, i) => (
+              <a key={i} href={task.path} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem',
+                  background: task.done ? 'rgba(16,185,129,0.08)' : 'var(--bg)',
+                  border: `1px solid ${task.done ? '#10B981' : 'var(--border)'}`,
+                  borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s'
+                }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${task.done ? '#10B981' : 'var(--border)'}`, background: task.done ? '#10B981' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.7rem', color: 'white' }}>
+                    {task.done ? '✓' : ''}
+                  </div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: task.done ? '#10B981' : 'var(--text)', textDecoration: task.done ? 'line-through' : 'none' }}>{task.emoji} {task.label}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Weekly Chart */}
         <motion.div
           className="card"

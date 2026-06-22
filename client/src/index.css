@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Pillar Colors */
+  /* Pillar Colors (kept for legacy components) */
   --mental:    #818CF8;
   --fitness:   #F97316;
   --nutrition: #22C55E;
@@ -10,12 +10,13 @@
   --vitals:    #EF4444;
   --wellness:  #F59E0B;
 
-  /* Base */
-  --bg:        #F8FAFC;
-  --surface:   #FFFFFF;
-  --text:      #0F172A;
+  /* Archimedes Base Colors */
+  --bg:        #131B3A;
+  --surface:   #1E2B58;
+  --primary:   #D4AF37;
+  --text:      #F8FAFC;
   --muted:     #94A3B8;
-  --border:    #E2E8F0;
+  --border:    #2E3C73;
 
   /* Score Status Colors */
   --thriving:  #10B981;
@@ -30,7 +31,8 @@
   --gradient-sleep: linear-gradient(135deg, #6366F1, #4F46E5);
   --gradient-vitals: linear-gradient(135deg, #EF4444, #DC2626);
   --gradient-wellness: linear-gradient(135deg, #F59E0B, #D97706);
-  --gradient-hero: linear-gradient(135deg, #818CF8 0%, #6366F1 30%, #4F46E5 60%, #3B82F6 100%);
+  --gradient-hero: linear-gradient(135deg, #C8A849 0%, #D4AF37 50%, #FDE047 100%);
+  --gradient-primary: linear-gradient(135deg, #D4AF37, #B48E1D);
 }
 
 *, *::before, *::after {
@@ -89,8 +91,8 @@ h1, h2, h3, h4, h5, h6 {
   transition: border-color 0.2s;
 }
 .input:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
 }
 
 /* Button */
@@ -110,21 +112,21 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: none;
 }
 .btn-primary {
-  background: linear-gradient(135deg, #6366F1, #4F46E5);
-  color: white;
-  box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  background: var(--gradient-primary);
+  color: #131B3A; /* Dark navy text for contrast on gold */
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 .btn-secondary {
-  background: var(--bg);
-  color: var(--text);
-  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
 }
 .btn-secondary:hover {
-  background: var(--border);
+  background: rgba(212, 175, 55, 0.1);
 }
 .btn-ghost {
   background: transparent;

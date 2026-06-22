@@ -37,7 +37,7 @@ export default function Vitals() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const [vitalsRes, medsRes, alertsRes] = await Promise.allSettled([
         api.get('/api/vitals/log?days=14'),
@@ -47,7 +47,7 @@ export default function Vitals() {
       if (vitalsRes.status === 'fulfilled') setVitals(vitalsRes.value.data)
       if (medsRes.status === 'fulfilled') setMedications(medsRes.value.data)
       if (alertsRes.status === 'fulfilled') setAlerts(alertsRes.value.data?.alerts || [])
-    } catch (err) {
+    } catch {
       setVitals([])
     }
   }
@@ -65,7 +65,7 @@ export default function Vitals() {
       toast.success(`${newVital.type} logged!`)
       setNewVital({ ...newVital, value: '' })
       fetchData()
-    } catch (err) {
+    } catch {
       toast.error('Failed to log vital.')
     } finally {
       setLoading(false)
@@ -77,10 +77,25 @@ export default function Vitals() {
     try {
       await api.post('/api/vitals/medications', newMed)
       toast.success('Medication added!')
+      
+      // Archimedes Guideline Alert Trigger
+      try {
+        const { data: alertData } = await api.post('/api/ai/guideline-alert', { medication: newMed.name })
+        if (alertData.hasAlert) {
+          toast(alertData.alertMessage, {
+            icon: '🚨',
+            duration: 8000,
+            style: { background: '#131B3A', color: '#D4AF37', border: '1px solid #D4AF37' }
+          })
+        }
+      } catch (err) {
+        console.error('Failed to check guidelines', err)
+      }
+
       setNewMed({ name: '', dosage: '', frequency: 'daily' })
       setShowMedForm(false)
       fetchData()
-    } catch (err) {
+    } catch {
       toast.error('Failed to add medication.')
     }
   }
@@ -89,7 +104,7 @@ export default function Vitals() {
     try {
       await api.patch(`/api/vitals/medications/${id}`, { taken_today: !taken })
       setMedications(prev => prev.map(m => m.id === id ? { ...m, taken_today: !taken } : m))
-    } catch (err) {
+    } catch {
       toast.error('Failed to update medication status.')
     }
   }
@@ -105,7 +120,7 @@ export default function Vitals() {
         dateRange: 'Last 30 days',
       })
       toast.success('Report downloaded! 📄')
-    } catch (err) {
+    } catch {
       toast.error('Failed to generate report.')
     }
   }

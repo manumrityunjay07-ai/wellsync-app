@@ -6,11 +6,18 @@ import { useAuth } from '../context/AuthContext'
 import { exportToCSV } from '../utils/reportGenerator'
 import api from '../services/api'
 import toast from 'react-hot-toast'
-import { User, Target, Shield, Download, Bell, LogOut, Edit3, Save } from 'lucide-react'
+import { User, Target, Shield, Download, LogOut, Edit3, Save, Network } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
+const InfoRow = ({ label, value }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--border)' }}>
+    <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600 }}>{label}</span>
+    <span style={{ fontSize: '0.875rem', color: '#0F172A', fontWeight: 500 }}>{value || '—'}</span>
+  </div>
+)
+
 export default function Profile() {
-  const { profile, updateProfile, signOut } = useAuth()
+  const { profile, updateProfile, signOut, toggleRole } = useAuth()
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -19,7 +26,7 @@ export default function Profile() {
     gender: profile?.gender || '',
   })
   const [loading, setLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const isMobile = window.innerWidth < 768
 
   const handleSave = async () => {
     setLoading(true)
@@ -27,7 +34,7 @@ export default function Profile() {
       await updateProfile(form)
       toast.success('Profile updated!')
       setEditing(false)
-    } catch (err) {
+    } catch {
       toast.error('Failed to update profile.')
     } finally {
       setLoading(false)
@@ -39,7 +46,7 @@ export default function Profile() {
       const { data } = await api.get('/api/wellness/export')
       exportToCSV(data, 'WellSync_HealthData')
       toast.success('Data exported as CSV!')
-    } catch (err) {
+    } catch {
       toast.error('Export failed. Try again.')
     }
   }
@@ -48,13 +55,6 @@ export default function Profile() {
     await signOut()
     navigate('/auth')
   }
-
-  const InfoRow = ({ label, value }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--border)' }}>
-      <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600 }}>{label}</span>
-      <span style={{ fontSize: '0.875rem', color: '#0F172A', fontWeight: 500 }}>{value || '—'}</span>
-    </div>
-  )
 
   return (
     <div style={{ display: 'flex' }}>
@@ -155,6 +155,21 @@ export default function Profile() {
             <h3 style={{ fontSize: '1rem' }}>Data & Account</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', justifyContent: 'flex-start', gap: '0.75rem' }}
+              onClick={async () => {
+                try {
+                  await toggleRole()
+                  toast.success(`Switched to ${profile.role === 'provider' ? 'Patient' : 'Provider'} Mode`)
+                } catch {
+                  toast.error('Failed to switch roles')
+                }
+              }}
+            >
+              <Network size={16} color="var(--primary)" />
+              Switch to {profile?.role === 'provider' ? 'Patient' : 'Provider'} Mode
+            </button>
             <button
               className="btn btn-secondary"
               style={{ width: '100%', justifyContent: 'flex-start', gap: '0.75rem' }}

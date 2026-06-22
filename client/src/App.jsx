@@ -8,6 +8,12 @@ import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
+import Evidence from './pages/Evidence'
+import FrontiersGraph from './pages/FrontiersGraph'
+import Alerts from './pages/Alerts'
+import DrugInteraction from './pages/DrugInteraction'
+import CostAnalysis from './pages/CostAnalysis'
+import Demo from './pages/Demo'
 import Mental from './pages/Mental'
 import Fitness from './pages/Fitness'
 import Nutrition from './pages/Nutrition'
@@ -20,6 +26,40 @@ import Profile from './pages/Profile'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import ResetPassword from './pages/ResetPassword'
+
+import React from 'react'
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({ error, errorInfo })
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', background: '#EF444420', color: '#EF4444', fontFamily: 'monospace' }}>
+          <h2>Something went wrong.</h2>
+          <details style={{ whiteSpace: 'pre-wrap' }}>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </details>
+        </div>
+      );
+    }
+    return this.props.children; 
+  }
+}
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -53,6 +93,12 @@ function AppRoutes() {
       <Route path="/terms" element={<Terms />} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><WellScoreProvider><Dashboard /></WellScoreProvider></ProtectedRoute>} />
+      <Route path="/evidence" element={<ProtectedRoute><Evidence /></ProtectedRoute>} />
+      <Route path="/frontiers" element={<ProtectedRoute><FrontiersGraph /></ProtectedRoute>} />
+      <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+      <Route path="/drug-interaction" element={<ProtectedRoute><DrugInteraction /></ProtectedRoute>} />
+      <Route path="/cost-analysis" element={<ProtectedRoute><CostAnalysis /></ProtectedRoute>} />
+      <Route path="/demo" element={<Demo />} />
       <Route path="/mental" element={<ProtectedRoute><Mental /></ProtectedRoute>} />
       <Route path="/fitness" element={<ProtectedRoute><Fitness /></ProtectedRoute>} />
       <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
@@ -70,24 +116,26 @@ function AppRoutes() {
 export default function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              fontFamily: 'Plus Jakarta Sans',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              borderRadius: '12px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            },
-            success: { iconTheme: { primary: '#10B981', secondary: 'white' } },
-            error: { iconTheme: { primary: '#EF4444', secondary: 'white' } },
-          }}
-        />
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              },
+              success: { iconTheme: { primary: '#10B981', secondary: 'white' } },
+              error: { iconTheme: { primary: '#EF4444', secondary: 'white' } },
+            }}
+          />
+        </AuthProvider>
+      </ErrorBoundary>
     </Router>
   )
 }

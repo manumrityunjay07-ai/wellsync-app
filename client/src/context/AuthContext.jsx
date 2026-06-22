@@ -103,6 +103,20 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  async function toggleRole() {
+    if (!profile) return
+    const newRole = profile.role === 'provider' ? 'patient' : 'provider'
+    const { data, error } = await supabase
+      .from('users')
+      .update({ role: newRole })
+      .eq('id', user.id)
+      .select()
+      .single()
+    if (error) throw error
+    setProfile(data)
+    return data
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -116,6 +130,7 @@ export function AuthProvider({ children }) {
       fetchProfile,
       resetPassword,
       updatePassword,
+      toggleRole,
     }}>
       {children}
     </AuthContext.Provider>

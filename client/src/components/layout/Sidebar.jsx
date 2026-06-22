@@ -3,13 +3,18 @@ import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, Brain, Dumbbell, Salad, Moon, 
   Activity, Sparkles, MessageCircle, Users, User,
-  LogOut, Bell, ChevronLeft, ChevronRight
+  LogOut, ChevronLeft, ChevronRight, FileSearch, Network, Bell, Pill, DollarSign
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/alerts', icon: Bell, label: 'Intelligence Hub', color: '#EF4444' },
+  { to: '/evidence', icon: FileSearch, label: 'Payer Intel', color: '#D4AF37' },
+  { to: '/drug-interaction', icon: Pill, label: 'Drug Interactions', color: '#8B5CF6' },
+  { to: '/cost-analysis', icon: DollarSign, label: 'Cost Analysis', color: '#10B981' },
+  { to: '/frontiers', icon: Network, label: '7 Frontiers', color: '#10B981' },
   { to: '/mental', icon: Brain, label: 'Mental', color: '#818CF8' },
   { to: '/fitness', icon: Dumbbell, label: 'Fitness', color: '#F97316' },
   { to: '/nutrition', icon: Salad, label: 'Nutrition', color: '#22C55E' },
@@ -22,7 +27,7 @@ const navItems = [
 ]
 
 export default function Sidebar() {
-  const { user, signOut } = useAuth()
+  const { signOut, profile } = useAuth()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
 
@@ -71,48 +76,50 @@ export default function Sidebar() {
 
       {/* Nav Items */}
       <nav style={{ flex: 1, overflowY: 'auto', padding: '1rem 0.5rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {navItems.map(({ to, icon: Icon, label, color }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.625rem 0.75rem',
-              borderRadius: 10,
-              textDecoration: 'none',
-              transition: 'all 0.15s',
-              background: isActive ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(79,70,229,0.1))' : 'transparent',
-              color: isActive ? '#4F46E5' : '#64748B',
-              fontFamily: 'Plus Jakarta Sans',
-              fontWeight: isActive ? 600 : 500,
-              fontSize: '0.875rem',
-            })}
-          >
-            {({ isActive }) => (
-              <>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isActive ? (color ? `${color}20` : 'rgba(99,102,241,0.15)') : 'transparent',
-                }}>
-                  <Icon size={17} color={isActive ? (color || '#4F46E5') : '#94A3B8'} />
-                </div>
-                {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
-                {isActive && !collapsed && (
-                  <motion.div
-                    layoutId="sidebar-indicator"
-                    style={{
-                      marginLeft: 'auto', width: 4, height: 4, borderRadius: 99,
-                      background: color || '#4F46E5',
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
+        {navItems.map(({ to, icon: Icon, label, color }) => {
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.625rem 0.75rem',
+                borderRadius: 10,
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+                background: isActive ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(79,70,229,0.1))' : 'transparent',
+                color: isActive ? '#4F46E5' : '#64748B',
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.875rem',
+              })}
+            >
+              {({ isActive }) => (
+                <>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isActive ? (color ? `${color}20` : 'rgba(99,102,241,0.15)') : 'transparent',
+                  }}>
+                    <Icon size={17} color={isActive ? (color || '#4F46E5') : '#94A3B8'} />
+                  </div>
+                  {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
+                  {isActive && !collapsed && (
+                    <motion.div
+                      layoutId="sidebar-indicator"
+                      style={{
+                        marginLeft: 'auto', width: 4, height: 4, borderRadius: 99,
+                        background: color || '#4F46E5',
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+          )
+        })}
       </nav>
 
       {/* Bottom section */}
