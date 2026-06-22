@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase'
 
 const api = axios.create({
   baseURL: 'https://wellsync-app.onrender.com',
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true
 })
 
 // Attach JWT token to every request
