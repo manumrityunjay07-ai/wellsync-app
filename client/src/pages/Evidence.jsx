@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Loader2, Download, BarChart2, PieChart as PieChartIcon, FileSpreadsheet, BookOpen } from 'lucide-react'
+import { Search, Loader2, Download, BarChart2, PieChart as PieChartIcon, FileSpreadsheet, BookOpen, History, Star, Share2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import html2canvas from 'html2canvas'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 export default function Evidence() {
   const [query, setQuery] = useState('')
@@ -14,12 +16,32 @@ export default function Evidence() {
   const [result, setResult] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [pubmedResults, setPubmedResults] = useState([])
+  const [history, setHistory] = useState([])
+  const { profile } = useAuth()
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('resize', handler)
+    
+    async function fetchHistory() {
+      if (!profile) return
+      try {
+        const { data, error } = await supabase
+          .from('search_history')
+          .select('*')
+          .eq('type', 'evidence')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        if (!error && data) setHistory(data)
+      } catch (err) {
+        console.log('Search history table might not exist yet')
+      }
+    }
+    fetchHistory()
+    
     return () => window.removeEventListener('resize', handler)
-  }, [])
+  }, [profile])
 
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -35,10 +57,46 @@ export default function Evidence() {
       // Also fetch PubMed
       const pubmed = await api.post('/api/ai/pubmed-search', { query })
       if (pubmed.data) setPubmedResults(pubmed.data)
+
+      // Save to history
+      if (profile) {
+        try {
+          const { data: newHist, error } = await supabase.from('search_history').insert({
+            user_id: profile.id,
+            query,
+            type: 'evidence'
+          }).select().single()
+          if (!error && newHist) setHistory(prev => [newHist, ...prev].slice(0, 5))
+        } catch (e) {
+          console.log('Could not save history')
+        }
+      }
     } catch {
       toast.error('Failed to generate evidence. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!result) return
+    if (!profile) return toast.error('You must be logged in to share reports.')
+    
+    const token = Math.random().toString(36).substring(2, 12)
+    try {
+      const { error } = await supabase.from('shared_reports').insert({
+        token,
+        user_id: profile.id,
+        query,
+        result_data: result
+      })
+      if (error) throw error
+      const url = `${window.location.origin}/share/${token}`
+      await navigator.clipboard.writeText(url)
+      toast.success('Shareable link copied to clipboard!')
+    } catch (e) {
+      console.error(e)
+      toast.error('Failed to generate share link')
     }
   }
 
@@ -230,6 +288,9 @@ export default function Evidence() {
                 <p style={{ color: 'var(--muted)', lineHeight: 1.6, maxWidth: isMobile ? '100%' : '80%' }}>{result.summary}</p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, flexDirection: isMobile ? 'column' : 'row' }}>
+                <button className="btn btn-secondary" onClick={handleShare} style={{ padding: '0.5rem 1rem' }}>
+                  <Share2 size={16} /> Share Link
+                </button>
                 <button className="btn btn-secondary" onClick={exportCSV} style={{ padding: '0.5rem 1rem' }}>
                   <FileSpreadsheet size={16} /> Export CSV
                 </button>
@@ -290,8 +351,25 @@ export default function Evidence() {
         )}
 
         {!result && !loading && (
-          <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '4rem 0', fontStyle: 'italic' }}>
-            Enter a query above to dynamically extract PICO tables from the Archimedes simulated clinical database.
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--muted)', padding: '4rem 0' }}>
+            <p style={{ fontStyle: 'italic', marginBottom: '2rem' }}>
+              Enter a query above to dynamically extract PICO tables from the Archimedes simulated clinical database.
+            </p>
+            {history.length > 0 && (
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '1.5rem', width: '100%', maxWidth: 600, textAlign: 'left' }}>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <History size={16} color="var(--primary)" /> Recent Searches
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {history.map(h => (
+                    <button key={h.id} onClick={() => { setQuery(h.query); setTimeout(() => document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 0) }} style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%' }}>
+                      <span style={{ color: 'var(--text)', fontWeight: 500 }}>{h.query}</span>
+                      {h.is_saved && <Star size={14} color="#F59E0B" fill="#F59E0B" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/layout/Sidebar'
 import BottomNav from '../components/layout/BottomNav'
 import api from '../services/api'
-import { MessageCircle, Send, Bot, User, Sparkles } from 'lucide-react'
+import { Bot, User } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const WELCOME_MSG = {
   id: 'welcome',
@@ -20,6 +21,7 @@ const SUGGESTIONS = [
 ]
 
 export default function Chat() {
+  const { profile } = useAuth()
   const [messages, setMessages] = useState([WELCOME_MSG])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -38,11 +40,11 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const fetchHealthSummary = async () => {
+  async function fetchHealthSummary() {
     try {
       const { data } = await api.get('/api/wellness/score')
       setHealthSummary(data)
-    } catch (err) {
+    } catch {
       setHealthSummary(null)
     }
   }
@@ -52,14 +54,27 @@ export default function Chat() {
     if (!msg || loading) return
 
     setInput('')
-    const userMsg = { id: Date.now(), role: 'user', text: msg, time: new Date() }
+    const msgId = Date.now()
+    const userMsg = { id: msgId, role: 'user', text: msg, time: new Date() }
     setMessages(prev => [...prev, userMsg])
     setLoading(true)
 
     try {
-      const { data } = await api.post('/api/ai/chat', { message: msg })
+      const { data } = await api.post('/api/ai/chat', {
+        message: msg,
+        healthContext: healthSummary ? {
+          wellScore: healthSummary.score,
+          topWin: healthSummary.top_win,
+          topConcern: healthSummary.top_concern,
+          moodScore: healthSummary.mood_score,
+          fitnessScore: healthSummary.fitness_score,
+          sleepScore: healthSummary.sleep_score,
+          nutritionScore: healthSummary.nutrition_score,
+          vitalsScore: healthSummary.vitals_score,
+        } : null
+      })
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'bot', text: data.response, time: new Date() }])
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, {
         id: Date.now() + 1, role: 'bot',
         text: 'I\'m having trouble connecting right now. Please try again later.',
@@ -83,7 +98,7 @@ export default function Chat() {
         {/* Header */}
         <div style={{
           padding: '1.5rem 2rem', borderBottom: '1px solid var(--border)',
-          background: 'white', flexShrink: 0,
+          background: 'var(--surface)', flexShrink: 0,
           display: 'flex', alignItems: 'center', gap: '0.875rem',
         }}>
           <div style={{
@@ -94,7 +109,7 @@ export default function Chat() {
             <Bot size={20} color="white" />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.1rem', color: '#0F172A' }}>WellBot</h1>
+            <h1 style={{ fontSize: '1.1rem', color: 'var(--text)' }}>WellBot</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
               <div style={{ width: 7, height: 7, borderRadius: 99, background: '#10B981' }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>AI Health Assistant · Powered by Gemini</span>
@@ -107,7 +122,12 @@ export default function Chat() {
           {/* Suggestions */}
           {messages.length <= 1 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              {SUGGESTIONS.map(s => (
+              {(profile?.role === 'provider' ? [
+                'Analyze latest patient vitals',
+                'Summarize Archimedes drug interactions',
+                'Generate clinical notes for today',
+                'Show recent payer coverage trends'
+              ] : SUGGESTIONS).map(s => (
                 <button key={s} onClick={() => sendMessage(s)}
                   style={{
                     padding: '0.5rem 0.875rem', borderRadius: 99, fontSize: '0.78rem',
@@ -212,7 +232,7 @@ export default function Chat() {
                 transition: 'all 0.2s', flexShrink: 0,
               }}
             >
-              <Send size={17} color={input.trim() ? 'white' : 'var(--muted)'} />
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={input.trim() ? 'white' : 'var(--muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
           </div>
           <p style={{ fontSize: '0.65rem', color: 'var(--muted)', marginTop: '0.375rem', textAlign: 'center' }}>

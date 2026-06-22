@@ -14,7 +14,7 @@ export default function BottomNav() {
   return (
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: 'rgba(255,255,255,0.9)',
+      background: 'var(--surface)',
       backdropFilter: 'blur(20px)',
       borderTop: '1px solid var(--border)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
@@ -29,21 +29,37 @@ export default function BottomNav() {
         >
           {({ isActive }) => (
             <motion.div
-              whileTap={{ scale: 0.9 }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '0.375rem 0.75rem' }}
+              whileTap={{ scale: 0.85 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '0.375rem 0.75rem', position: 'relative' }}
             >
+              {/* Active indicator pill */}
+              {isActive && (
+                <motion.div
+                  layoutId="bottomNavPill"
+                  style={{
+                    position: 'absolute', top: 0, left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 32, height: 3, borderRadius: 99,
+                    background: color || 'var(--primary)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+
               <div style={{
-                width: isActive ? 40 : 32, height: isActive ? 28 : 28,
+                width: isActive ? 44 : 32, height: 28,
                 borderRadius: isActive ? 14 : 8,
-                background: isActive ? (color ? `${color}20` : 'rgba(99,102,241,0.12)') : 'transparent',
+                background: isActive ? (color ? `${color}20` : 'rgba(212,175,55,0.15)') : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.2s',
+                transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}>
-                <Icon size={18} color={isActive ? (color || '#4F46E5') : '#94A3B8'} />
+                <Icon size={18} color={isActive ? (color || 'var(--primary)') : 'var(--muted)'} />
               </div>
+
               <span style={{
-                fontSize: '0.6rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 600,
-                color: isActive ? (color || '#4F46E5') : '#94A3B8',
+                fontSize: '0.6rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 700,
+                color: isActive ? (color || 'var(--primary)') : 'var(--muted)',
                 transition: 'color 0.2s',
               }}>
                 {label}

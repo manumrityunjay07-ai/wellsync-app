@@ -11,6 +11,7 @@ import WeeklyChart from '../components/dashboard/WeeklyChart'
 import { useAuth } from '../context/AuthContext'
 import { useWellScore } from '../context/WellScoreContext'
 import api from '../services/api'
+import TourModal from '../components/TourModal'
 
 const pillars = [
   { pillar: 'mental', icon: Brain, label: 'Mental', to: '/mental' },
@@ -22,22 +23,27 @@ const pillars = [
 ]
 
 export default function Dashboard() {
-  const { user, profile } = useAuth()
+  const { user, profile, updateProfile } = useAuth()
   const { todayScore, scoreHistory, loading, calculateScore } = useWellScore()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [showNotifs, setShowNotifs] = useState(false)
-  const [notifs, setNotifs] = useState([])
 
-  useEffect(() => {
-    const alerts = []
-    if (todayScore && todayScore.score < 50) {
-      alerts.push({ type: 'warning', msg: `Your WellScore is ${todayScore.score} today — check your pillars` })
+  // Derived state to avoid cascading renders
+  const notifs = []
+  if (todayScore && todayScore.score < 50) {
+    notifs.push({ type: 'warning', msg: `Your WellScore is ${todayScore.score} today — check your pillars` })
+  }
+  if (todayScore?.top_concern) {
+    notifs.push({ type: 'info', msg: todayScore.top_concern })
+  }
+
+  const handleTourComplete = async () => {
+    try {
+      await updateProfile({ has_completed_tour: true })
+    } catch {
+      // ignore error
     }
-    if (todayScore?.top_concern) {
-      alerts.push({ type: 'info', msg: todayScore.top_concern })
-    }
-    setNotifs(alerts)
-  }, [todayScore])
+  }
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
@@ -57,6 +63,7 @@ export default function Dashboard() {
   return (
     <div style={{ display: 'flex' }}>
       {!isMobile && <Sidebar />}
+      {profile?.has_completed_tour === false && <TourModal onComplete={handleTourComplete} />}
 
       <main className="main-content" style={{ flex: 1 }}>
         {/* Header */}

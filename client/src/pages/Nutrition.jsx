@@ -7,6 +7,8 @@ import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { Salad } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 export default function Nutrition() {
   const { profile } = useAuth()
@@ -32,16 +34,12 @@ export default function Nutrition() {
   }
 
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handler)
-    fetchData()
-    return () => window.removeEventListener('resize', handler)
-  }, [])
 
-  const fetchData = async () => {
+  async function fetchData() {
+    setFetching(true)
     try {
       const [todayRes, logsRes] = await Promise.allSettled([
         api.get('/api/nutrition/today'),
@@ -51,8 +49,17 @@ export default function Nutrition() {
       if (logsRes.status === 'fulfilled') setLogs(logsRes.value.data)
     } catch (err) {
       setLogs([])
+    } finally {
+      setFetching(false)
     }
   }
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    fetchData()
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   const handleMealLog = async (data) => {
     setLoading(true)
@@ -109,11 +116,10 @@ export default function Nutrition() {
 
             <motion.div className="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Today's Meals</h3>
-              {logs.length === 0 ? (
-                <div className="empty-state" style={{ padding: '2rem' }}>
-                  <Salad size={32} color="var(--muted)" />
-                  <p>No meals logged today. Log your first meal above!</p>
-                </div>
+              {fetching ? (
+                <SkeletonList rows={3} />
+              ) : logs.length === 0 ? (
+                <EmptyState emoji="🥗" title="No meals logged today" description="Log your first meal above!" />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {logs.filter(l => {

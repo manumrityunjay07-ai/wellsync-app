@@ -8,6 +8,8 @@ import { generateDoctorReport } from '../utils/reportGenerator'
 import toast from 'react-hot-toast'
 import { Activity, AlertTriangle, FileText, Plus, Check, X } from 'lucide-react'
 import { format } from 'date-fns'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 const vitalTypes = {
   'Blood Pressure': { unit: 'mmHg', placeholder: '120/80', example: '120/80' },
@@ -25,6 +27,7 @@ export default function Vitals() {
   const [medications, setMedications] = useState([])
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [newVital, setNewVital] = useState({ type: 'Blood Sugar (Fasting)', value: '' })
   const [newMed, setNewMed] = useState({ name: '', dosage: '', frequency: 'daily' })
   const [showMedForm, setShowMedForm] = useState(false)
@@ -38,6 +41,7 @@ export default function Vitals() {
   }, [])
 
   async function fetchData() {
+    setFetching(true)
     try {
       const [vitalsRes, medsRes, alertsRes] = await Promise.allSettled([
         api.get('/api/vitals/log?days=14'),
@@ -49,6 +53,8 @@ export default function Vitals() {
       if (alertsRes.status === 'fulfilled') setAlerts(alertsRes.value.data?.alerts || [])
     } catch {
       setVitals([])
+    } finally {
+      setFetching(false)
     }
   }
 
@@ -213,11 +219,10 @@ export default function Vitals() {
             {/* Recent vitals */}
             <motion.div className="card" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Recent Readings</h3>
-              {vitals.length === 0 ? (
-                <div className="empty-state" style={{ padding: '1.5rem' }}>
-                  <Activity size={28} color="var(--muted)" />
-                  <p>No vitals logged yet.</p>
-                </div>
+              {fetching ? (
+                <SkeletonList rows={3} />
+              ) : vitals.length === 0 ? (
+                <EmptyState emoji="📈" title="No vitals logged" description="Log your first reading above!" />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {vitals.slice(0, 6).map((v, i) => (

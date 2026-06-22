@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { WellScoreProvider } from './context/WellScoreContext'
+import { ThemeProvider } from './context/ThemeContext'
 
 // Pages
 import Landing from './pages/Landing'
@@ -14,6 +15,7 @@ import Alerts from './pages/Alerts'
 import DrugInteraction from './pages/DrugInteraction'
 import CostAnalysis from './pages/CostAnalysis'
 import Demo from './pages/Demo'
+import Share from './pages/Share'
 import Mental from './pages/Mental'
 import Fitness from './pages/Fitness'
 import Nutrition from './pages/Nutrition'
@@ -99,6 +101,7 @@ function AppRoutes() {
       <Route path="/drug-interaction" element={<ProtectedRoute><DrugInteraction /></ProtectedRoute>} />
       <Route path="/cost-analysis" element={<ProtectedRoute><CostAnalysis /></ProtectedRoute>} />
       <Route path="/demo" element={<Demo />} />
+      <Route path="/share/:token" element={<Share />} />
       <Route path="/mental" element={<ProtectedRoute><Mental /></ProtectedRoute>} />
       <Route path="/fitness" element={<ProtectedRoute><Fitness /></ProtectedRoute>} />
       <Route path="/nutrition" element={<ProtectedRoute><Nutrition /></ProtectedRoute>} />
@@ -115,27 +118,31 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Router>
-      <ErrorBoundary>
-        <AuthProvider>
-          <AppRoutes />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                fontFamily: 'Plus Jakarta Sans',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                borderRadius: '12px',
-                border: '1px solid var(--border)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              },
-              success: { iconTheme: { primary: '#10B981', secondary: 'white' } },
-              error: { iconTheme: { primary: '#EF4444', secondary: 'white' } },
-            }}
-          />
-        </AuthProvider>
-      </ErrorBoundary>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AppRoutes />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  background: 'var(--surface)',
+                  color: 'var(--text)',
+                },
+                success: { iconTheme: { primary: '#10B981', secondary: 'white' } },
+                error: { iconTheme: { primary: '#EF4444', secondary: 'white' } },
+              }}
+            />
+          </AuthProvider>
+        </ErrorBoundary>
+      </Router>
+    </ThemeProvider>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, AlertTriangle, Info, FileText, CheckCircle, Search, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import toast from 'react-hot-toast'
 
 export default function Alerts() {
   const [filter, setFilter] = useState('all')
@@ -45,6 +46,30 @@ export default function Alerts() {
       }
     }
     fetchAlerts()
+
+    const channel = supabase
+      .channel('alerts_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, (payload) => {
+        const a = payload.new
+        const newAlert = {
+          id: a.id,
+          type: a.type,
+          category: a.category,
+          title: a.title,
+          desc: a.description,
+          time: 'Just now'
+        }
+        setAlerts(prev => [newAlert, ...prev])
+        toast(a.title, {
+          icon: a.type === 'warning' ? '🚨' : a.type === 'success' ? '✅' : 'ℹ️',
+          style: { background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)' }
+        })
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const filteredAlerts = filter === 'all' ? alerts : alerts.filter(a => a.type === filter)

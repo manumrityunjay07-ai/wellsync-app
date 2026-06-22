@@ -30,3 +30,26 @@ CREATE TABLE IF NOT EXISTS public.alerts (
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow read access to all users" ON public.alerts FOR SELECT USING (true);
 CREATE POLICY "Allow insert access to authenticated users" ON public.alerts FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- Phase 5: Search History Table
+CREATE TABLE IF NOT EXISTS search_history (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    query TEXT NOT NULL,
+    type TEXT NOT NULL,
+    is_saved BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Phase 5: Onboarding Tour
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_completed_tour BOOLEAN DEFAULT false;
+
+-- Phase 5: Shared Reports
+CREATE TABLE IF NOT EXISTS shared_reports (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    token TEXT UNIQUE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    query TEXT NOT NULL,
+    result_data JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

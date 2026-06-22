@@ -162,27 +162,52 @@ Last 7 days of data: ${JSON.stringify(weeklyData)}`
 // POST /api/ai/chat — WellBot
 router.post('/chat', auth, planLimits, async (req, res, next) => {
   try {
-    const { message } = req.body
+    const { message, healthContext } = req.body
     
-    const { data: scoreData } = await supabase
-      .from('well_scores').select('*')
-      .eq('user_id', req.user.id)
-      .order('calculated_at', { ascending: false })
-      .limit(1)
-      .single()
+    // Use client-provided context if available, otherwise fetch from DB
+    let contextData = healthContext
+    if (!contextData) {
+      const { data: scoreData } = await supabase
+        .from('well_scores').select('*')
+        .eq('user_id', req.user.id)
+        .order('calculated_at', { ascending: false })
+        .limit(1)
+        .single()
+      contextData = scoreData
+    }
+
+    // Build personalized context string
+    const contextStr = contextData
+      ? `User's current health data:
+- WellScore: ${contextData.wellScore ?? contextData.score ?? 'N/A'}/100
+- Top Win: ${contextData.topWin ?? contextData.top_win ?? 'N/A'}
+- Top Concern: ${contextData.topConcern ?? contextData.top_concern ?? 'N/A'}
+- Mood Score: ${contextData.moodScore ?? contextData.mood_score ?? 'N/A'}/100
+- Sleep Score: ${contextData.sleepScore ?? contextData.sleep_score ?? 'N/A'}/100
+- Fitness Score: ${contextData.fitnessScore ?? contextData.fitness_score ?? 'N/A'}/100
+- Nutrition Score: ${contextData.nutritionScore ?? contextData.nutrition_score ?? 'N/A'}/100`
+      : 'No health data available yet.'
     
-    const prompt = `You are WellBot, a friendly personal health assistant inside the WellSync app.
-Answer the user's question using their personal health data for context.
-Keep responses under 150 words. Be specific, warm, and practical.
-Never diagnose. If something sounds serious, always say "consult your doctor."
-User's latest WellScore data: ${JSON.stringify(scoreData)}
-User's question: "${message}"
-Respond as plain text, not JSON.`
+    const prompt = `You are WellBot, a warm, knowledgeable personal health assistant inside the WellSync app.
+Your job is to answer the user's health question with their personal data as context.
+
+${contextStr}
+
+Guidelines:
+- Keep responses under 150 words
+- Reference their specific scores when relevant (e.g., "Since your sleep score is low...")
+- Be warm, encouraging, and practical
+- Never diagnose conditions
+- If something sounds serious, say "please consult your doctor"
+- Respond as plain text, not JSON
+
+User's question: "${message}"`
     
     const response = await askGeminiText(prompt)
     res.json({ response })
   } catch (err) { next(err) }
 })
+
 
 // POST /api/ai/meal-macro
 router.post('/meal-macro', auth, planLimits, async (req, res, next) => {
@@ -304,7 +329,31 @@ Return ONLY raw JSON, no markdown.
 }`
 
     const result = await askGemini(prompt)
+    if (result.hasAlert) {
+      await supabase.from('alerts').insert({
+        title: `Guideline Alert: ${medication}`,
+        description: result.alertMessage,
+        type: 'warning',
+        category: 'guidelines'
+      })
+    }
     res.json(result)
+  } catch (err) { next(err) }
+})
+
+// POST /api/ai/generate-alert
+router.post('/generate-alert', auth, async (req, res, next) => {
+  try {
+    const { title, description, type, category } = req.body
+    if (!title || !description) return res.status(400).json({ error: 'Title and description required' })
+    const { data, error } = await supabase.from('alerts').insert({
+      title,
+      description,
+      type: type || 'info',
+      category: category || 'system'
+    }).select().single()
+    if (error) throw error
+    res.json(data)
   } catch (err) { next(err) }
 })
 

@@ -6,6 +6,8 @@ import api from '../services/api'
 import toast from 'react-hot-toast'
 import { Sparkles, Plus, Check, X, Trophy, Star, Zap, Droplets, Moon, Flame } from 'lucide-react'
 import { useWellScore } from '../context/WellScoreContext'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 const BADGE_DEFINITIONS = [
   { id: 'first_log', icon: '🌱', name: 'First Step', desc: 'Logged your first health entry', color: '#22C55E' },
@@ -26,6 +28,7 @@ export default function Wellness() {
   const [newHabit, setNewHabit] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [earnedBadges, setEarnedBadges] = useState([])
   const [crossInsights, setCrossInsights] = useState(null)
@@ -39,7 +42,8 @@ export default function Wellness() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
-  const fetchData = async () => {
+  async function fetchData() {
+    setFetching(true)
     try {
       const [habitsRes, reportRes, badgesRes] = await Promise.allSettled([
         api.get('/api/wellness/habits'),
@@ -54,6 +58,8 @@ export default function Wellness() {
       if (badgesRes.status === 'fulfilled') setEarnedBadges(badgesRes.value.data || [])
     } catch (err) {
       setHabits([])
+    } finally {
+      setFetching(false)
     }
   }
 
@@ -187,11 +193,10 @@ export default function Wellness() {
               </motion.div>
             )}
 
-            {habits.length === 0 ? (
-              <div className="empty-state" style={{ padding: '2rem' }}>
-                <Sparkles size={28} color="var(--muted)" />
-                <p>No habits yet! Add your first habit above.</p>
-              </div>
+            {fetching ? (
+              <SkeletonList rows={3} />
+            ) : habits.length === 0 ? (
+              <EmptyState emoji="✨" title="No habits yet" description="Add your first habit above!" />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                 {habits.map((habit, i) => (

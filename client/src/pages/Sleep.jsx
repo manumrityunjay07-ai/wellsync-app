@@ -4,8 +4,10 @@ import Sidebar from '../components/layout/Sidebar'
 import BottomNav from '../components/layout/BottomNav'
 import api from '../services/api'
 import toast from 'react-hot-toast'
-import { Moon, Clock, Star, BedDouble, AlertCircle } from 'lucide-react'
-import { format, differenceInHours, differenceInMinutes } from 'date-fns'
+import { Moon, AlertCircle } from 'lucide-react'
+import { format, differenceInMinutes } from 'date-fns'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 function RecoveryBadge({ score }) {
   const config = {
@@ -28,11 +30,25 @@ function RecoveryBadge({ score }) {
 export default function Sleep() {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [bedtime, setBedtime] = useState('23:00')
   const [wakeTime, setWakeTime] = useState('07:00')
   const [quality, setQuality] = useState(3)
   const [restedness, setRestedness] = useState(3)
+
+
+  async function fetchLogs() {
+    setFetching(true)
+    try {
+      const { data } = await api.get('/api/sleep/log?days=14')
+      setLogs(data)
+    } catch (err) {
+      setLogs([])
+    } finally {
+      setFetching(false)
+    }
+  }
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
@@ -40,15 +56,6 @@ export default function Sleep() {
     fetchLogs()
     return () => window.removeEventListener('resize', handler)
   }, [])
-
-  const fetchLogs = async () => {
-    try {
-      const { data } = await api.get('/api/sleep/log?days=14')
-      setLogs(data)
-    } catch (err) {
-      setLogs([])
-    }
-  }
 
   const calcDuration = () => {
     const today = new Date()
@@ -90,7 +97,8 @@ export default function Sleep() {
   const avgSleep = logs.length ? (logs.reduce((a, l) => a + l.duration_hrs, 0) / logs.length).toFixed(1) : 0
   
   const weekMs = 7 * 24 * 60 * 60 * 1000
-  const thisWeek = logs.filter(l => new Date(l.logged_at) > new Date(Date.now() - weekMs))
+  const now = new Date()
+  const thisWeek = logs.filter(l => new Date(l.logged_at) > new Date(now.getTime() - weekMs))
   const totalSlept = thisWeek.reduce((a, l) => a + (l.duration_hrs || 0), 0)
   const target = 49 // 7 hours × 7 days
   const sleepDebt = Math.max(0, target - totalSlept).toFixed(1)
@@ -227,11 +235,10 @@ export default function Sleep() {
 
             <motion.div className="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Sleep History</h3>
-              {logs.length === 0 ? (
-                <div className="empty-state" style={{ padding: '2rem' }}>
-                  <Moon size={32} color="var(--muted)" />
-                  <p>No sleep logs yet. Log your first night!</p>
-                </div>
+              {fetching ? (
+                <SkeletonList rows={3} />
+              ) : logs.length === 0 ? (
+                <EmptyState emoji="💤" title="No sleep logs yet" description="Log your first night!" />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {logs.slice(0, 7).map((log, i) => (

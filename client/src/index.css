@@ -1,6 +1,237 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+:root, [data-theme="dark"] {
+  /* Pillar Colors */
+  --mental:    #818CF8;
+  --fitness:   #F97316;
+  --nutrition: #22C55E;
+  --sleep:     #6366F1;
+  --vitals:    #EF4444;
+  --wellness:  #F59E0B;
+
+  /* Archimedes Base Colors - DARK */
+  --bg:        #131B3A;
+  --surface:   #1E2B58;
+  --primary:   #D4AF37;
+  --text:      #F8FAFC;
+  --muted:     #94A3B8;
+  --border:    #2E3C73;
+  --skeleton-base: #1E2B58;
+  --skeleton-shine: #253570;
+
+  /* Score Status Colors */
+  --thriving:  #10B981;
+  --good:      #F59E0B;
+  --attention: #F97316;
+  --action:    #EF4444;
+  
+  /* Gradients */
+  --gradient-mental: linear-gradient(135deg, #818CF8, #6366F1);
+  --gradient-fitness: linear-gradient(135deg, #F97316, #EA580C);
+  --gradient-nutrition: linear-gradient(135deg, #22C55E, #16A34A);
+  --gradient-sleep: linear-gradient(135deg, #6366F1, #4F46E5);
+  --gradient-vitals: linear-gradient(135deg, #EF4444, #DC2626);
+  --gradient-wellness: linear-gradient(135deg, #F59E0B, #D97706);
+  --gradient-hero: linear-gradient(135deg, #C8A849 0%, #D4AF37 50%, #FDE047 100%);
+  --gradient-primary: linear-gradient(135deg, #D4AF37, #B48E1D);
+}
+
+[data-theme="light"] {
+  --bg:        #F0F4FF;
+  --surface:   #FFFFFF;
+  --primary:   #B48E1D;
+  --text:      #0F172A;
+  --muted:     #64748B;
+  --border:    #E2E8F0;
+  --skeleton-base: #E2E8F0;
+  --skeleton-shine: #F1F5F9;
+  --gradient-primary: linear-gradient(135deg, #D4AF37, #B48E1D);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+}
+
+.score-number {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* Card */
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  padding: 1.5rem;
+}
+
+/* Input */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--gradient-primary);
+  color: #131B3A;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+.btn-secondary:hover {
+  background: rgba(212, 175, 55, 0.1);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  padding: 0.5rem;
+}
+.btn-ghost:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Pill badge */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Page layout */
+.page {
+  min-height: 100vh;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-with-sidebar {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.grid-6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+@media (max-width: 768px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-6 { grid-template-columns: repeat(2, 1fr); }
+  .main-content { padding: 1rem; padding-bottom: 5rem; }
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  gap: 1rem;
+  color: var(--muted);
+}
+
+/* Status pills */
+.status-thriving { background: #D1FAE5; color: #065F46; }
+.status-good { background: #FEF3C7; color: #92400E; }
+.status-attention { background: #FFEDD5; color: #9A3412; }
+.status-action { background: #FEE2E2; color: #991B1B; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 70% { box-shadow: 0 0 0 10px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.spinner { animation: spin 0.8s linear infinite; }
+
+/* Skeleton — theme-aware shimmer */
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+
 :root {
   /* Pillar Colors (kept for legacy components) */
   --mental:    #818CF8;

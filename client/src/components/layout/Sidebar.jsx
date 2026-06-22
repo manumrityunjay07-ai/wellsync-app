@@ -3,10 +3,13 @@ import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, Brain, Dumbbell, Salad, Moon, 
   Activity, Sparkles, MessageCircle, Users, User,
-  LogOut, ChevronLeft, ChevronRight, FileSearch, Network, Bell, Pill, DollarSign
+  LogOut, ChevronLeft, ChevronRight, FileSearch, Network, Bell, Pill, DollarSign, Sun
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
+import { useLocation } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -28,8 +31,29 @@ const navItems = [
 
 export default function Sidebar() {
   const { signOut, profile } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [unreadAlerts, setUnreadAlerts] = useState(0)
+
+  useEffect(() => {
+    if (location.pathname === '/alerts') {
+      setUnreadAlerts(0)
+    }
+  }, [location.pathname])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('sidebar_alerts')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, () => {
+        if (window.location.pathname !== '/alerts') {
+          setUnreadAlerts(prev => prev + 1)
+        }
+      })
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()
@@ -106,7 +130,18 @@ export default function Sidebar() {
                     <Icon size={17} color={isActive ? (color || '#4F46E5') : '#94A3B8'} />
                   </div>
                   {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
-                  {isActive && !collapsed && (
+                  
+                  {to === '/alerts' && unreadAlerts > 0 ? (
+                    !collapsed && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{
+                        marginLeft: 'auto', background: '#EF4444', color: 'white', 
+                        fontSize: '0.7rem', fontWeight: 700, padding: '0.1rem 0.4rem', 
+                        borderRadius: 99, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {unreadAlerts}
+                      </motion.div>
+                    )
+                  ) : isActive && !collapsed && (
                     <motion.div
                       layoutId="sidebar-indicator"
                       style={{
@@ -123,18 +158,35 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom section */}
-      <div style={{ padding: '0.75rem 0.5rem', borderTop: '1px solid var(--border)' }}>
+      <div style={{ padding: '0.75rem 0.5rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.625rem 0.75rem', borderRadius: 10, width: '100%',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            color: 'var(--muted)', fontSize: '0.875rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 500,
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.color = 'var(--primary)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--muted)' }}
+        >
+          {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+          {!collapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+
         <button
           onClick={handleSignOut}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.75rem',
             padding: '0.625rem 0.75rem', borderRadius: 10, width: '100%',
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: '#94A3B8', fontSize: '0.875rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 500,
+            color: 'var(--muted)', fontSize: '0.875rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 500,
             transition: 'all 0.15s',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.color = '#EF4444' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94A3B8' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--muted)' }}
         >
           <LogOut size={17} />
           {!collapsed && <span>Sign Out</span>}

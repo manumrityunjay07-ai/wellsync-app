@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Pill, Search, Loader2, AlertTriangle, CheckCircle, Info, Shield } from 'lucide-react'
+import { Pill, Search, Loader2, AlertTriangle, CheckCircle, Info, Shield, History, Star } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const severityConfig = {
   high: { color: '#EF4444', bg: '#FEF2F2', icon: AlertTriangle, label: 'HIGH RISK' },
@@ -16,6 +18,27 @@ export default function DrugInteraction() {
   const [drug2, setDrug2] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
+  const [history, setHistory] = useState([])
+  const { profile } = useAuth()
+
+  useEffect(() => {
+    async function fetchHistory() {
+      if (!profile) return
+      try {
+        const { data, error } = await supabase
+          .from('search_history')
+          .select('*')
+          .eq('type', 'drug_interaction')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        if (!error && data) setHistory(data)
+      } catch (err) {
+        console.log('Search history table might not exist yet')
+      }
+    }
+    fetchHistory()
+  }, [profile])
 
   const handleCheck = async (e) => {
     e.preventDefault()
@@ -25,6 +48,19 @@ export default function DrugInteraction() {
     try {
       const { data } = await api.post('/api/ai/drug-interaction', { drug1: drug1.trim(), drug2: drug2.trim() })
       setResult(data)
+
+      if (profile) {
+        try {
+          const { data: newHist, error } = await supabase.from('search_history').insert({
+            user_id: profile.id,
+            query: `${drug1.trim()} + ${drug2.trim()}`,
+            type: 'drug_interaction'
+          }).select().single()
+          if (!error && newHist) setHistory(prev => [newHist, ...prev].slice(0, 5))
+        } catch (e) {
+          console.log('Could not save history')
+        }
+      }
     } catch {
       toast.error('Failed to analyze interaction. Please try again.')
     } finally {
@@ -76,6 +112,25 @@ export default function DrugInteraction() {
             {loading ? <><Loader2 className="spinner" size={18} /> Analyzing Interaction...</> : <><Search size={18} /> Analyze Interaction</>}
           </button>
         </form>
+
+        {!result && !loading && history.length > 0 && (
+          <div style={{ marginTop: '3rem', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <History size={16} color="var(--primary)" /> Recent Checks
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {history.map(h => {
+                const parts = h.query.split(' + ')
+                return (
+                  <button key={h.id} onClick={() => { setDrug1(parts[0] || ''); setDrug2(parts[1] || ''); setTimeout(() => document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 0) }} style={{ background: 'var(--bg)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%' }}>
+                    <span style={{ color: 'var(--text)', fontWeight: 500 }}>{h.query}</span>
+                    {h.is_saved && <Star size={14} color="#F59E0B" fill="#F59E0B" />}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {result && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '2.5rem' }}>

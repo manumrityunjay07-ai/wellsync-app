@@ -7,13 +7,29 @@ import MoodHeatmap from '../components/mental/MoodHeatmap'
 import CopingToolkit from '../components/mental/CopingToolkit'
 import api from '../services/api'
 import toast from 'react-hot-toast'
-import { Brain, TrendingUp, Calendar, AlertCircle } from 'lucide-react'
+import { Brain } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 export default function Mental() {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [patterns, setPatterns] = useState(null)
+
+
+  const fetchLogs = async () => {
+    setFetching(true)
+    try {
+      const { data } = await api.get('/api/mood/history?days=30')
+      setLogs(data)
+    } catch (err) {
+      // Demo data for UI
+      setLogs([])
+    } finally {
+      setFetching(false)
+    }
+  }
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
@@ -21,16 +37,6 @@ export default function Mental() {
     fetchLogs()
     return () => window.removeEventListener('resize', handler)
   }, [])
-
-  const fetchLogs = async () => {
-    try {
-      const { data } = await api.get('/api/mood/history?days=30')
-      setLogs(data)
-    } catch (err) {
-      // Demo data for UI
-      setLogs([])
-    }
-  }
 
   const handleMoodSubmit = async (moodData) => {
     setLoading(true)
@@ -106,11 +112,10 @@ export default function Mental() {
             {/* Recent logs */}
             <motion.div className="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Recent Mood Logs</h3>
-              {logs.length === 0 ? (
-                <div className="empty-state">
-                  <Brain size={36} color="var(--muted)" />
-                  <p>No mood logs yet. Log your first check-in above!</p>
-                </div>
+              {fetching ? (
+                <SkeletonList rows={3} />
+              ) : logs.length === 0 ? (
+                <EmptyState emoji="🧠" title="No mood logs yet" description="Log your first check-in above!" />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {logs.slice(0, 5).map((log, i) => (

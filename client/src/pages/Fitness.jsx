@@ -5,7 +5,9 @@ import BottomNav from '../components/layout/BottomNav'
 import { WorkoutLogger, StreakCounter, WorkoutPlan } from '../components/fitness/WorkoutLogger'
 import api from '../services/api'
 import toast from 'react-hot-toast'
-import { Dumbbell, Trophy, Clock, Zap, RefreshCw } from 'lucide-react'
+import { Dumbbell, RefreshCw } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 
 export default function Fitness() {
   const [logs, setLogs] = useState([])
@@ -13,16 +15,12 @@ export default function Fitness() {
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(false)
   const [planLoading, setPlanLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handler)
-    fetchData()
-    return () => window.removeEventListener('resize', handler)
-  }, [])
 
-  const fetchData = async () => {
+  async function fetchData() {
+    setFetching(true)
     try {
       const [logsRes, streakRes, planRes] = await Promise.allSettled([
         api.get('/api/fitness/log?days=30'),
@@ -34,8 +32,17 @@ export default function Fitness() {
       if (planRes.status === 'fulfilled') setPlan(planRes.value.data)
     } catch (err) {
       setLogs([])
+    } finally {
+      setFetching(false)
     }
   }
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    fetchData()
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   const handleWorkoutSubmit = async (data) => {
     setLoading(true)
@@ -122,11 +129,10 @@ export default function Fitness() {
             {/* Recent Logs */}
             <motion.div className="card" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Recent Workouts</h3>
-              {logs.length === 0 ? (
-                <div className="empty-state" style={{ padding: '2rem' }}>
-                  <Dumbbell size={32} color="var(--muted)" />
-                  <p>No workouts logged yet. Log your first session!</p>
-                </div>
+              {fetching ? (
+                <SkeletonList rows={3} />
+              ) : logs.length === 0 ? (
+                <EmptyState emoji="💪" title="No workouts logged" description="Log your first session!" />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {logs.slice(0, 5).map((log, i) => (
