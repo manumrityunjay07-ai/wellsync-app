@@ -3,8 +3,12 @@ import { motion } from 'framer-motion'
 import { DollarSign, Search, Loader2, TrendingDown, BarChart2, FileText } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../context/AuthContext'
+import UpgradeModal from '../components/ui/UpgradeModal'
 
 export default function CostAnalysis() {
+  const { profile } = useAuth()
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
   const [drug, setDrug] = useState('')
   const [indication, setIndication] = useState('')
   const [loading, setLoading] = useState(false)
@@ -13,6 +17,10 @@ export default function CostAnalysis() {
   const handleAnalyze = async (e) => {
     e.preventDefault()
     if (!drug.trim()) return toast.error('Please enter a drug name')
+    if (profile?.plan !== 'pro') {
+      setIsUpgradeOpen(true)
+      return
+    }
     setLoading(true)
     setResult(null)
     try {
@@ -107,6 +115,7 @@ export default function CostAnalysis() {
             </div>
           </motion.div>
         )}
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} featureName="Treatment Cost-Effectiveness Report" />
       </motion.div>
     </div>
   )

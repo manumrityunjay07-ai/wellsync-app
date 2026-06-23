@@ -94,7 +94,7 @@ export default function Sleep() {
     return 'red'
   }
 
-  const avgSleep = logs.length ? (logs.reduce((a, l) => a + l.duration_hrs, 0) / logs.length).toFixed(1) : 0
+  const avgSleep = logs.length ? (logs.reduce((a, l) => a + (l.duration_hrs || 0), 0) / logs.length).toFixed(1) : 0
   
   const weekMs = 7 * 24 * 60 * 60 * 1000
   const now = new Date()

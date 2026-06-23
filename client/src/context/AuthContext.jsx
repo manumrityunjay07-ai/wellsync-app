@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import api from '../services/api'
 
 const AuthContext = createContext(null)
 
@@ -105,14 +106,7 @@ export function AuthProvider({ children }) {
 
   async function toggleRole() {
     if (!profile) return
-    const newRole = profile.role === 'provider' ? 'patient' : 'provider'
-    const { data, error } = await supabase
-      .from('users')
-      .update({ role: newRole })
-      .eq('id', user.id)
-      .select()
-      .single()
-    if (error) throw error
+    const { data } = await api.post('/api/user/toggle-role')
     setProfile(data)
     return data
   }

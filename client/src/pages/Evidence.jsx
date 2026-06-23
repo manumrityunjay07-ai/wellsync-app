@@ -9,8 +9,10 @@ import api from '../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import UpgradeModal from '../components/ui/UpgradeModal'
 
 export default function Evidence() {
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
@@ -46,6 +48,10 @@ export default function Evidence() {
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!query) return
+    if (profile?.plan !== 'pro') {
+      setIsUpgradeOpen(true)
+      return
+    }
 
     setLoading(true)
     setResult(null)
@@ -55,8 +61,12 @@ export default function Evidence() {
       setResult(data)
       
       // Also fetch PubMed
-      const pubmed = await api.post('/api/ai/pubmed-search', { query })
-      if (pubmed.data) setPubmedResults(pubmed.data)
+      try {
+        const pubmed = await api.post('/api/ai/pubmed-search', { query })
+        if (pubmed.data) setPubmedResults(pubmed.data)
+      } catch (e) {
+        console.error('PubMed search failed', e)
+      }
 
       // Save to history
       if (profile) {
@@ -102,6 +112,10 @@ export default function Evidence() {
 
   const exportPDF = async () => {
     if (!result) return
+    if (profile?.plan !== 'pro') {
+      setIsUpgradeOpen(true)
+      return
+    }
     const doc = new jsPDF()
     
     // Premium Header Area
@@ -152,7 +166,7 @@ export default function Evidence() {
     // PICO Table
     const tableData = result.pico?.map(s => [
       s.nctId, s.grade, s.population, s.intervention, s.comparator, s.outcome
-    ])
+    ]) || []
 
     doc.autoTable({
       startY: startY,
@@ -373,6 +387,7 @@ export default function Evidence() {
           </div>
         )}
 
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} featureName="Clinical Evidence Hub" />
       </motion.div>
     </div>
   )

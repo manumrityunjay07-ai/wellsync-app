@@ -213,7 +213,8 @@ User's question: "${message}"`
 router.post('/meal-macro', auth, planLimits, async (req, res, next) => {
   try {
     const { description } = req.body
-    if (!description) return res.status(400).json({ error: 'Description is required' })
+    if (!description || typeof description !== 'string') return res.status(400).json({ error: 'Description is required and must be a string' })
+    if (description.length > 500) return res.status(400).json({ error: 'Description is too long (maximum 500 characters)' })
 
     const prompt = `You are a nutrition AI. Estimate the calories and macros for this Indian meal description.
 Account for typical Indian serving sizes and cooking methods.
@@ -233,11 +234,47 @@ Meal: "${description}"`
   } catch (err) { next(err) }
 })
 
+// POST /api/ai/meal-vision
+router.post('/meal-vision', auth, planLimits, async (req, res, next) => {
+  try {
+    const { base64Image, mimeType, description } = req.body
+    if (!base64Image || !mimeType) {
+      return res.status(400).json({ error: 'Image data and mimeType are required' })
+    }
+    
+    let mealContext = ''
+    if (description) {
+      if (typeof description !== 'string') return res.status(400).json({ error: 'Description must be a string' })
+      if (description.length > 500) return res.status(400).json({ error: 'Description is too long' })
+      mealContext = `\nUser provided context: "${description}"`
+    }
+
+    const prompt = `You are a nutrition AI. Look at the attached image of food${mealContext ? ' and use the provided context' : ''}.
+Estimate the calories and macros for this meal. Account for typical serving sizes.
+If you cannot identify the food clearly, make your best educated guess but set confidence to "low".
+Respond ONLY in raw JSON, no markdown:
+{
+  "calories": number,
+  "protein_g": number,
+  "carbs_g": number,
+  "fats_g": number,
+  "confidence": "high" | "medium" | "low",
+  "note": "optional short note if confidence is low, or identifying what you see"
+}`
+
+    const { askGeminiVision } = require('../utils/geminiClient')
+    const result = await askGeminiVision(prompt, base64Image, mimeType)
+    res.json(result)
+  } catch (err) { next(err) }
+})
+
 // POST /api/ai/mood-tone
 router.post('/mood-tone', auth, planLimits, async (req, res, next) => {
   try {
     const { journalNote } = req.body
     if (!journalNote) return res.json({ tone: 'neutral' })
+    if (typeof journalNote !== 'string') return res.status(400).json({ error: 'Journal note must be a string' })
+    if (journalNote.length > 5000) return res.status(400).json({ error: 'Journal note is too long (maximum 5000 characters)' })
 
     const prompt = `Analyse this journal note and return only the emotional tone as a single word.
 Choose from: positive, negative, anxious, calm, sad, excited, frustrated, neutral
@@ -255,7 +292,8 @@ Respond with ONLY the single word tone, nothing else.`
 router.post('/evidence-search', auth, planLimits, async (req, res, next) => {
   try {
     const { query } = req.body
-    if (!query) return res.status(400).json({ error: 'Query is required' })
+    if (!query || typeof query !== 'string') return res.status(400).json({ error: 'Query is required and must be a string' })
+    if (query.length > 200) return res.status(400).json({ error: 'Query is too long (maximum 200 characters)' })
 
     // Step 1: Extract core search term from query
     const termPrompt = `Extract the core medical condition or intervention from this query to use as a search term for ClinicalTrials.gov. Return ONLY the search term. Query: "${query}"`
@@ -317,7 +355,8 @@ Return ONLY raw JSON, no markdown. The JSON must exactly match this structure:
 router.post('/guideline-alert', auth, planLimits, async (req, res, next) => {
   try {
     const { medication } = req.body
-    if (!medication) return res.status(400).json({ error: 'Medication is required' })
+    if (!medication || typeof medication !== 'string') return res.status(400).json({ error: 'Medication is required and must be a string' })
+    if (medication.length > 200) return res.status(400).json({ error: 'Medication name is too long (maximum 200 characters)' })
 
     const prompt = `You are the Archimedes AI system.
 The user just logged a new medication: "${medication}".
@@ -346,6 +385,24 @@ router.post('/generate-alert', auth, async (req, res, next) => {
   try {
     const { title, description, type, category } = req.body
     if (!title || !description) return res.status(400).json({ error: 'Title and description required' })
+    if (typeof title !== 'string' || typeof description !== 'string') {
+      return res.status(400).json({ error: 'Title and description must be strings' })
+    }
+    if (title.length > 200 || description.length > 1000) {
+      return res.status(400).json({ error: 'Title or description exceeds allowed length limits' })
+    }
+
+    // Verify user is a provider or admin before permitting alert creation
+    const { data: profile, error: roleError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', req.user.id)
+      .single()
+
+    if (roleError || !profile || (profile.role !== 'provider' && profile.role !== 'admin')) {
+      return res.status(403).json({ error: 'Access denied. Only providers or administrators can generate alerts.' })
+    }
+
     const { data, error } = await supabase.from('alerts').insert({
       title,
       description,
@@ -360,10 +417,11 @@ router.post('/generate-alert', auth, async (req, res, next) => {
 // [Previous evidence-search route here...]
 
 // PubMed API Route
-router.post('/pubmed-search', async (req, res) => {
+router.post('/pubmed-search', auth, async (req, res) => {
   try {
     const { query } = req.body
-    if (!query) return res.status(400).json({ error: 'Query required' })
+    if (!query || typeof query !== 'string') return res.status(400).json({ error: 'Query required and must be a string' })
+    if (query.length > 200) return res.status(400).json({ error: 'Query is too long (maximum 200 characters)' })
 
     const cleanTerm = encodeURIComponent(`${query} AND (clinical trial OR meta-analysis OR review)`)
     const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${cleanTerm}&retmode=json&retmax=3`
@@ -402,7 +460,12 @@ router.post('/pubmed-search', async (req, res) => {
 router.post('/drug-interaction', auth, async (req, res, next) => {
   try {
     const { drug1, drug2 } = req.body
-    if (!drug1 || !drug2) return res.status(400).json({ error: 'Both drug names required' })
+    if (!drug1 || !drug2 || typeof drug1 !== 'string' || typeof drug2 !== 'string') {
+      return res.status(400).json({ error: 'Both drug names are required and must be strings' })
+    }
+    if (drug1.length > 100 || drug2.length > 100) {
+      return res.status(400).json({ error: 'Drug names are too long (maximum 100 characters)' })
+    }
 
     // 1. Fetch interaction data from OpenFDA
     const fdaUrl = `https://api.fda.gov/drug/label.json?search=drug_interactions:${encodeURIComponent(drug1)}&limit=1`
@@ -445,7 +508,11 @@ Provide a JSON response ONLY (no markdown) in this exact format:
 router.post('/cost-analysis', auth, async (req, res, next) => {
   try {
     const { drug, indication } = req.body
-    if (!drug) return res.status(400).json({ error: 'Drug name required' })
+    if (!drug || typeof drug !== 'string') return res.status(400).json({ error: 'Drug name required and must be a string' })
+    if (drug.length > 100) return res.status(400).json({ error: 'Drug name is too long (maximum 100 characters)' })
+    if (indication && (typeof indication !== 'string' || indication.length > 200)) {
+      return res.status(400).json({ error: 'Indication must be a string under 200 characters' })
+    }
 
     const prompt = `You are a health economist and market access expert. A provider needs a cost-effectiveness analysis.
 

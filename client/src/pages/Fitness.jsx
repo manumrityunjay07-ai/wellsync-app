@@ -8,8 +8,12 @@ import toast from 'react-hot-toast'
 import { Dumbbell, RefreshCw } from 'lucide-react'
 import EmptyState from '../components/ui/EmptyState'
 import { SkeletonList } from '../components/ui/Skeleton'
+import { useAuth } from '../context/AuthContext'
+import UpgradeModal from '../components/ui/UpgradeModal'
 
 export default function Fitness() {
+  const { profile } = useAuth()
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
   const [logs, setLogs] = useState([])
   const [streak, setStreak] = useState(0)
   const [plan, setPlan] = useState(null)
@@ -58,6 +62,10 @@ export default function Fitness() {
   }
 
   const generatePlan = async () => {
+    if (profile?.plan !== 'pro') {
+      setIsUpgradeOpen(true)
+      return
+    }
     setPlanLoading(true)
     try {
       const { data } = await api.post('/api/ai/workout-plan')
@@ -159,6 +167,7 @@ export default function Fitness() {
         </div>
       </main>
       {isMobile && <BottomNav />}
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} featureName="AI Workout Plan Generator" />
     </div>
   )
 }

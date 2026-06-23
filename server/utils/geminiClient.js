@@ -29,4 +29,25 @@ async function askGeminiText(prompt) {
   return result.response.text().trim()
 }
 
-module.exports = { askGemini, askGeminiText }
+async function askGeminiVision(prompt, base64Image, mimeType) {
+  if (!model) throw new Error('Gemini API key not configured')
+  try {
+    const imageParts = [
+      {
+        inlineData: {
+          data: base64Image,
+          mimeType: mimeType
+        }
+      }
+    ]
+    const result = await model.generateContent([prompt, ...imageParts])
+    const text = result.response.text().trim()
+    const clean = text.replace(/```json|```/g, '').trim()
+    return JSON.parse(clean)
+  } catch (error) {
+    console.error('Gemini Vision JSON error:', error.message)
+    throw new Error('AI vision request failed')
+  }
+}
+
+module.exports = { askGemini, askGeminiText, askGeminiVision }

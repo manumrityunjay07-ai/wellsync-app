@@ -2,7 +2,7 @@ import axios from 'axios'
 import { supabase } from '../lib/supabase'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://wellsync-app.onrender.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://wellsync-app.onrender.com',
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true
 })

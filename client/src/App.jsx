@@ -24,10 +24,13 @@ import Vitals from './pages/Vitals'
 import Wellness from './pages/Wellness'
 import Chat from './pages/Chat'
 import Friends from './pages/Friends'
-import Profile from './pages/Profile'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import ResetPassword from './pages/ResetPassword'
+import Progress from './pages/Progress'
+import Profile from './pages/Profile'
+import ProviderDashboard from './pages/ProviderDashboard'
+import Integrations from './pages/Integrations'
 
 import React from 'react'
 
@@ -95,6 +98,7 @@ function AppRoutes() {
       <Route path="/terms" element={<Terms />} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><WellScoreProvider><Dashboard /></WellScoreProvider></ProtectedRoute>} />
+      <Route path="/progress" element={<ProtectedRoute><WellScoreProvider><Progress /></WellScoreProvider></ProtectedRoute>} />
       <Route path="/evidence" element={<ProtectedRoute><Evidence /></ProtectedRoute>} />
       <Route path="/frontiers" element={<ProtectedRoute><FrontiersGraph /></ProtectedRoute>} />
       <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
@@ -110,7 +114,9 @@ function AppRoutes() {
       <Route path="/wellness" element={<ProtectedRoute><WellScoreProvider><Wellness /></WellScoreProvider></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><WellScoreProvider><Profile /></WellScoreProvider></ProtectedRoute>} />
+      <Route path="/provider-dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

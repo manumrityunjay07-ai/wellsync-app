@@ -122,17 +122,12 @@ export default function Chat() {
           {/* Suggestions */}
           {messages.length <= 1 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              {(profile?.role === 'provider' ? [
-                'Analyze latest patient vitals',
-                'Summarize Archimedes drug interactions',
-                'Generate clinical notes for today',
-                'Show recent payer coverage trends'
-              ] : SUGGESTIONS).map(s => (
+              {SUGGESTIONS.map(s => (
                 <button key={s} onClick={() => sendMessage(s)}
                   style={{
                     padding: '0.5rem 0.875rem', borderRadius: 99, fontSize: '0.78rem',
                     fontFamily: 'Plus Jakarta Sans', fontWeight: 600, cursor: 'pointer',
-                    border: '1.5px solid #818CF840', background: '#818CF810', color: '#4F46E5',
+                    border: '1.5px solid #818CF840', background: '#818CF810', color: '#818CF8',
                     transition: 'all 0.15s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = '#818CF820'}
@@ -171,8 +166,8 @@ export default function Chat() {
                   <div style={{
                     padding: '0.875rem 1.125rem',
                     borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: msg.role === 'user' ? 'linear-gradient(135deg, #4F46E5, #6366F1)' : 'white',
-                    color: msg.role === 'user' ? 'white' : '#0F172A',
+                    background: msg.role === 'user' ? 'linear-gradient(135deg, #4F46E5, #6366F1)' : 'var(--surface)',
+                    color: msg.role === 'user' ? 'white' : 'var(--text)',
                     border: msg.role === 'bot' ? '1px solid var(--border)' : 'none',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                     fontSize: '0.875rem',
@@ -195,7 +190,7 @@ export default function Chat() {
               <div style={{ width: 32, height: 32, borderRadius: 99, background: 'linear-gradient(135deg, #818CF8, #4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Bot size={15} color="white" />
               </div>
-              <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '18px 18px 18px 4px', padding: '0.875rem 1.25rem', display: 'flex', gap: '4px' }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '18px 18px 18px 4px', padding: '0.875rem 1.25rem', display: 'flex', gap: '4px' }}>
                 {[0, 1, 2].map(i => (
                   <motion.div key={i} style={{ width: 7, height: 7, borderRadius: 99, background: '#818CF8' }}
                     animate={{ y: [-3, 3, -3] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }} />
@@ -210,7 +205,7 @@ export default function Chat() {
         {/* Input */}
         <div style={{
           padding: '1rem 2rem', borderTop: '1px solid var(--border)',
-          background: 'white', flexShrink: 0,
+          background: 'var(--surface)', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
             <textarea

@@ -5,6 +5,7 @@ import api from '../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import UpgradeModal from '../components/ui/UpgradeModal'
 
 const severityConfig = {
   high: { color: '#EF4444', bg: '#FEF2F2', icon: AlertTriangle, label: 'HIGH RISK' },
@@ -14,6 +15,7 @@ const severityConfig = {
 }
 
 export default function DrugInteraction() {
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
   const [drug1, setDrug1] = useState('')
   const [drug2, setDrug2] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,6 +45,10 @@ export default function DrugInteraction() {
   const handleCheck = async (e) => {
     e.preventDefault()
     if (!drug1.trim() || !drug2.trim()) return toast.error('Please enter both drug names')
+    if (profile?.plan !== 'pro') {
+      setIsUpgradeOpen(true)
+      return
+    }
     setLoading(true)
     setResult(null)
     try {
@@ -136,7 +142,7 @@ export default function DrugInteraction() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '2.5rem' }}>
             {/* Severity Banner */}
             <div style={{
-              background: severity.bg, border: `2px solid ${severity.color}`,
+              background: `${severity.color}15`, border: `2px solid ${severity.color}40`,
               borderRadius: 12, padding: '1.5rem', display: 'flex', alignItems: 'center',
               gap: '1rem', marginBottom: '2rem'
             }}>
@@ -145,7 +151,7 @@ export default function DrugInteraction() {
               </div>
               <div>
                 <div style={{ fontSize: '0.75rem', color: severity.color, fontWeight: 800, letterSpacing: '2px', marginBottom: '0.25rem' }}>{severity.label}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)' }}>
                   {drug1} + {drug2} Interaction
                 </div>
               </div>
@@ -177,6 +183,7 @@ export default function DrugInteraction() {
             </div>
           </motion.div>
         )}
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} featureName="Drug Interaction Analysis" />
       </motion.div>
     </div>
   )

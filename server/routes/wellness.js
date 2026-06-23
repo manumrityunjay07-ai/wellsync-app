@@ -179,4 +179,45 @@ router.get('/export', auth, async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// GET /api/wellness/streaks
+// Returns consecutive day streaks for all 6 pillars
+router.get('/streaks', auth, async (req, res, next) => {
+  try {
+    const uid = req.user.id
+
+    const [moodRes, workoutRes, mealRes, sleepRes, vitalRes, habitRes] = await Promise.all([
+      supabase.from('mood_logs').select('logged_at').eq('user_id', uid).order('logged_at', { ascending: false }),
+      supabase.from('workout_logs').select('logged_at').eq('user_id', uid).order('logged_at', { ascending: false }),
+      supabase.from('meal_logs').select('logged_at').eq('user_id', uid).order('logged_at', { ascending: false }),
+      supabase.from('sleep_logs').select('logged_at').eq('user_id', uid).order('logged_at', { ascending: false }),
+      supabase.from('vital_logs').select('logged_at').eq('user_id', uid).order('logged_at', { ascending: false }),
+      supabase.from('habit_logs').select('completed_at').eq('user_id', uid).order('completed_at', { ascending: false }),
+    ])
+
+    function calcStreak(rows, field = 'logged_at') {
+      if (!rows?.length) return 0
+      const days = [...new Set(rows.map(r => new Date(r[field]).toDateString()))]
+      let streak = 0
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      for (let i = 0; i < days.length; i++) {
+        const d = new Date(days[i])
+        const diff = Math.round((today - d) / 86400000)
+        if (diff === i || (i === 0 && diff === 1)) streak++
+        else break
+      }
+      return streak
+    }
+
+    res.json({
+      mental:    calcStreak(moodRes.data),
+      fitness:   calcStreak(workoutRes.data),
+      nutrition: calcStreak(mealRes.data),
+      sleep:     calcStreak(sleepRes.data),
+      vitals:    calcStreak(vitalRes.data),
+      wellness:  calcStreak(habitRes.data, 'completed_at'),
+    })
+  } catch (err) { next(err) }
+})
+
 module.exports = router

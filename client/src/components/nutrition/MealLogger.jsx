@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from 'recharts'
+import { Camera, X } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -9,15 +9,54 @@ export function MealLogger({ onSubmit, loading }) {
   const [mealType, setMealType] = useState('lunch')
   const [estimating, setEstimating] = useState(false)
   const [preview, setPreview] = useState(null)
+  
+  const [imageFile, setImageFile] = useState(null)
+  const [imageBase64, setImageBase64] = useState(null)
+  const [mimeType, setMimeType] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64Data = event.target.result.split(',')[1]
+      setImageBase64(base64Data)
+      setMimeType(file.type)
+      setImageFile(URL.createObjectURL(file))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setImageFile(null)
+    setImageBase64(null)
+    setMimeType(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const handleEstimate = async () => {
-    if (!description.trim()) return
+    if (!description.trim() && !imageBase64) return
     setEstimating(true)
     try {
-      const { data } = await api.post('/api/ai/meal-macro', { description })
-      setPreview(data)
+      if (imageBase64) {
+        const { data } = await api.post('/api/ai/meal-vision', { 
+          base64Image: imageBase64, 
+          mimeType, 
+          description 
+        })
+        setPreview(data)
+      } else {
+        const { data } = await api.post('/api/ai/meal-macro', { description })
+        setPreview(data)
+      }
     } catch (err) {
       toast.error('AI estimation failed. Please try again.')
+      console.error(err)
     } finally {
       setEstimating(false)
     }
@@ -25,7 +64,7 @@ export function MealLogger({ onSubmit, loading }) {
 
   const handleLog = () => {
     onSubmit({
-      meal_description: description,
+      meal_description: description || 'Photo log',
       meal_type: mealType,
       ai_calories: preview?.calories,
       ai_protein_g: preview?.protein_g,
@@ -34,6 +73,7 @@ export function MealLogger({ onSubmit, loading }) {
     })
     setDescription('')
     setPreview(null)
+    removeImage()
   }
 
   const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -56,14 +96,39 @@ export function MealLogger({ onSubmit, loading }) {
           </button>
         ))}
       </div>
-      <textarea
-        className="input"
-        placeholder="Describe your meal naturally... e.g. 'I had 2 idli with sambar, a cup of coffee with milk and sugar'"
-        value={description}
-        onChange={e => setDescription(e.target.value)}
-        rows={3}
-        style={{ resize: 'vertical', marginBottom: '0.875rem' }}
-      />
+      <div style={{ position: 'relative', marginBottom: '0.875rem' }}>
+        <textarea
+          className="input"
+          placeholder="Describe your meal naturally, or upload a photo... e.g. 'I had 2 idli with sambar'"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          rows={3}
+          style={{ resize: 'vertical', paddingRight: '3rem' }}
+        />
+        <label style={{ 
+          position: 'absolute', bottom: '0.75rem', right: '0.75rem', 
+          cursor: 'pointer', background: 'var(--surface)', padding: '0.4rem', 
+          borderRadius: 8, border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background 0.2s'
+        }}>
+          <Camera size={18} color="var(--muted)" />
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+        </label>
+      </div>
+
+      {imageFile && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ position: 'relative', display: 'inline-block', marginBottom: '1rem' }}>
+          <img src={imageFile} alt="Meal preview" style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }} />
+          <button onClick={removeImage} style={{ 
+            position: 'absolute', top: -6, right: -6, background: 'var(--surface)', 
+            border: '1px solid var(--border)', borderRadius: '50%', cursor: 'pointer', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22 
+          }}>
+            <X size={12} color="var(--text)" />
+          </button>
+        </motion.div>
+      )}
       
       {preview && (
         <motion.div
@@ -98,7 +163,7 @@ export function MealLogger({ onSubmit, loading }) {
         <button
           className="btn btn-secondary"
           onClick={handleEstimate}
-          disabled={!description.trim() || estimating}
+          disabled={(!description.trim() && !imageBase64) || estimating}
           style={{ flex: 1 }}
         >
           {estimating ? 'Estimating...' : '🤖 Estimate Macros'}
@@ -107,7 +172,7 @@ export function MealLogger({ onSubmit, loading }) {
           className="btn btn-primary"
           style={{ flex: 1, background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
           onClick={handleLog}
-          disabled={!description.trim() || loading}
+          disabled={(!description.trim() && !imageBase64) || loading}
         >
           {loading ? 'Saving...' : 'Log Meal ✓'}
         </button>
@@ -180,7 +245,7 @@ export function WaterTracker({ glasses = 0, goal = 8, onAdd, onRemove }) {
             whileTap={{ scale: 0.85 }}
             onClick={() => i < glasses ? onRemove() : onAdd()}
             style={{
-              aspectRatio: '1', borderRadius: 8, border: 'none', cursor: 'pointer',
+              aspectRatio: '1', borderRadius: 8, cursor: 'pointer',
               background: i < glasses ? '#0EA5E9' : 'var(--bg)',
               border: `2px solid ${i < glasses ? '#0EA5E9' : 'var(--border)'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',

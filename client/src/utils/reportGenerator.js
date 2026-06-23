@@ -185,6 +185,10 @@ export function generateDoctorReport(data) {
 }
 
 export function exportToCSV(data, filename) {
+  if (!data || !data.length) {
+    console.warn('No data to export');
+    return;
+  }
   const rows = [Object.keys(data[0])]
   data.forEach(row => rows.push(Object.values(row).map(v => JSON.stringify(v ?? ''))))
   const csv = rows.map(r => r.join(',')).join('\n')

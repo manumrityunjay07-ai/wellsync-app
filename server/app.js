@@ -7,6 +7,9 @@ const rateLimit = require('express-rate-limit')
 
 const app = express()
 
+// Trust reverse proxy for correct rate limiting (x-forwarded-for)
+app.set('trust proxy', 1)
+
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
@@ -46,6 +49,8 @@ app.use('/api/vitals', require('./routes/vitals'))
 app.use('/api/wellness', require('./routes/wellness'))
 app.use('/api/friends', require('./routes/friends'))
 app.use('/api/ai', aiLimiter, require('./routes/ai'))
+app.use('/api/user', require('./routes/user'))
+app.use('/api/provider', require('./routes/provider'))
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'WellSync API' }))

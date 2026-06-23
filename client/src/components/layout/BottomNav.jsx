@@ -1,20 +1,46 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Brain, Dumbbell, Salad, Moon, Sparkles } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { LayoutDashboard, Brain, Dumbbell, TrendingUp, Salad, Download } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { usePWA } from '../../hooks/usePWA'
 
 const items = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { to: '/mental', icon: Brain, label: 'Mental', color: '#818CF8' },
   { to: '/fitness', icon: Dumbbell, label: 'Fitness', color: '#F97316' },
   { to: '/nutrition', icon: Salad, label: 'Nutrition', color: '#22C55E' },
-  { to: '/wellness', icon: Sparkles, label: 'Wellness', color: '#F59E0B' },
+  { to: '/progress', icon: TrendingUp, label: 'Progress', color: '#818CF8' },
 ]
 
 export default function BottomNav() {
+  const { isInstallable, install } = usePWA()
+  
   return (
-    <nav style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0,
-      background: 'var(--surface)',
+    <>
+      <AnimatePresence>
+        {isInstallable && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={install}
+            style={{
+              position: 'fixed', bottom: 'calc(max(0.5rem, env(safe-area-inset-bottom)) + 65px)', left: '50%', transform: 'translateX(-50%)',
+              background: 'linear-gradient(135deg, #4F46E5, #818CF8)', color: 'white',
+              border: 'none', borderRadius: 99, padding: '0.625rem 1.25rem',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontFamily: 'Plus Jakarta Sans', fontWeight: 700, fontSize: '0.85rem',
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)', zIndex: 1000, cursor: 'pointer'
+            }}
+          >
+            <Download size={16} />
+            Install App
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'var(--surface)',
       backdropFilter: 'blur(20px)',
       borderTop: '1px solid var(--border)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
@@ -68,6 +94,7 @@ export default function BottomNav() {
           )}
         </NavLink>
       ))}
-    </nav>
+      </nav>
+    </>
   )
 }

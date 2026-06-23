@@ -8,14 +8,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
     return (
       <div style={{
-        background: 'white', border: '1px solid var(--border)',
+        background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 10, padding: '0.75rem 1rem',
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
       }}>
         <div style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>
           {label}
         </div>
-        <div style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '1.2rem', color: '#4F46E5' }}>
+        <div style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '1.2rem', color: '#818CF8' }}>
           {payload[0].value}
         </div>
         <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>WellScore</div>

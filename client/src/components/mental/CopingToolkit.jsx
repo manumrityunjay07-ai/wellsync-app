@@ -126,7 +126,7 @@ function GroundingExercise() {
       </div>
       <div style={{ textAlign: 'center', padding: '1.5rem', background: '#818CF810', borderRadius: 16, marginBottom: '1.25rem' }}>
         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{step.icon}</div>
-        <p style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, color: '#0F172A', lineHeight: 1.5 }}>{step.prompt}</p>
+        <p style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, color: 'var(--text)', lineHeight: 1.5 }}>{step.prompt}</p>
       </div>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         {currentStep > 0 && <button className="btn btn-secondary" onClick={() => setCurrentStep(s => s - 1)}>Back</button>}
@@ -164,7 +164,7 @@ function JournalPrompts() {
         borderLeft: '4px solid #F59E0B',
       }}>
         <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>💭</div>
-        <p style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, color: '#78350F', lineHeight: 1.6, fontSize: '0.95rem' }}>
+        <p style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, color: 'var(--text)', lineHeight: 1.6, fontSize: '0.95rem' }}>
           {prompt}
         </p>
       </div>
@@ -203,7 +203,7 @@ export default function CopingToolkit() {
               <Icon size={20} color={color} />
             </div>
             <div>
-              <div style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' }}>{label}</div>
+              <div style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 600, fontSize: '0.875rem', color: 'var(--text)' }}>{label}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{desc}</div>
             </div>
           </button>
@@ -224,7 +224,7 @@ export default function CopingToolkit() {
             onClick={(e) => { if (e.target === e.currentTarget) setOpen(null) }}
           >
             <div style={{
-              background: 'white', borderRadius: 20, padding: '1.5rem',
+              background: 'var(--surface)', borderRadius: 20, padding: '1.5rem',
               width: '100%', maxWidth: 420,
               boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
             }}>

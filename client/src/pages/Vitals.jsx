@@ -60,12 +60,17 @@ export default function Vitals() {
 
   const logVital = async () => {
     if (!newVital.value) return
+    const parsedValue = parseFloat(newVital.value)
+    if (isNaN(parsedValue)) {
+      toast.error(`Please enter a valid number for ${newVital.type}`)
+      return
+    }
     setLoading(true)
     try {
       const { unit } = vitalTypes[newVital.type]
       await api.post('/api/vitals/log', {
         vital_type: newVital.type,
-        value: parseFloat(newVital.value),
+        value: parsedValue,
         unit,
       })
       toast.success(`${newVital.type} logged!`)

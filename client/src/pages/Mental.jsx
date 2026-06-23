@@ -58,7 +58,7 @@ export default function Mental() {
 
   // Latest mood stats
   const todayLog = logs[0]
-  const avgStress = logs.length ? Math.round(logs.reduce((a, l) => a + l.stress_level, 0) / logs.length) : null
+  const avgStress = logs.length ? Math.round(logs.reduce((a, l) => a + (l.stress_level || 0), 0) / logs.length) : null
 
   return (
     <div style={{ display: 'flex' }}>
@@ -70,7 +70,7 @@ export default function Mental() {
             <div style={{ width: 36, height: 36, borderRadius: 10, background: '#818CF820', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Brain size={19} color="#818CF8" />
             </div>
-            <h1 style={{ fontSize: '1.5rem', color: '#0F172A' }}>Mental Health</h1>
+            <h1 style={{ fontSize: '1.5rem' }}>Mental Health</h1>
           </div>
           <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginLeft: '3rem' }}>
             Track your mood, manage stress, and build emotional resilience.

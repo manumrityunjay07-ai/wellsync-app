@@ -61,8 +61,8 @@ export default function Share() {
               <span style={{ color: 'white', fontWeight: 800 }}>W</span>
             </div>
             <div>
-              <div style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: '#0F172A' }}>WellSync Archimedes</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Verified Clinical Report</div>
+              <div style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)' }}>WellSync Health Report</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Shared via WellSync</div>
             </div>
           </div>
           <button className="btn btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -128,7 +128,7 @@ export default function Share() {
               <h3 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BarChart2 size={16} color="var(--primary)" /> Trial Enrollment Size</h3>
               <div style={{ height: 250 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={result.pico?.map((s, i) => ({ name: s.nctId || `Study ${i+1}`, patients: (s.nctId?.length * 15 || 150) + (i*20) }))}>
+                  <BarChart data={result.pico?.map((s, i) => ({ name: s.nctId || `Study ${i+1}`, patients: (s.nctId?.length * 15 || 150) + (i*20) })) || []}>
                     <XAxis dataKey="name" stroke="var(--muted)" fontSize={10} tickFormatter={(val) => val.substring(0,6)+'...'} />
                     <YAxis stroke="var(--muted)" fontSize={10} />
                     <RechartsTooltip />

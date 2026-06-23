@@ -9,6 +9,9 @@ import { useWellScore } from '../context/WellScoreContext'
 import EmptyState from '../components/ui/EmptyState'
 import { SkeletonList } from '../components/ui/Skeleton'
 
+import { useAuth } from '../context/AuthContext'
+import UpgradeModal from '../components/ui/UpgradeModal'
+
 const BADGE_DEFINITIONS = [
   { id: 'first_log', icon: '🌱', name: 'First Step', desc: 'Logged your first health entry', color: '#22C55E' },
   { id: 'streak_7', icon: '🔥', name: 'Week Warrior', desc: '7-day workout streak', color: '#F97316' },
@@ -21,6 +24,8 @@ const BADGE_DEFINITIONS = [
 ]
 
 export default function Wellness() {
+  const { profile } = useAuth()
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false)
   const { todayScore, scoreHistory } = useWellScore()
   const [habits, setHabits] = useState([])
   const [todayLogs, setTodayLogs] = useState([])
@@ -38,9 +43,13 @@ export default function Wellness() {
     const handler = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('resize', handler)
     fetchData()
-    fetchInsights()
+    if (profile?.plan === 'pro') {
+      fetchInsights()
+    } else {
+      setCrossInsights(null)
+    }
     return () => window.removeEventListener('resize', handler)
-  }, [])
+  }, [profile])
 
   async function fetchData() {
     setFetching(true)
@@ -208,7 +217,7 @@ export default function Wellness() {
                       display: 'flex', alignItems: 'center', gap: '0.875rem',
                       padding: '0.875rem', borderRadius: 12,
                       border: `1.5px solid ${habit.completed_today ? '#F59E0B40' : 'var(--border)'}`,
-                      background: habit.completed_today ? '#FEF3C7' : 'var(--bg)',
+                      background: habit.completed_today ? 'rgba(245,158,11,0.1)' : 'var(--bg)',
                       cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
                     }}
                   >
@@ -223,9 +232,9 @@ export default function Wellness() {
                     </div>
                     <span style={{
                       fontFamily: 'Plus Jakarta Sans', fontWeight: 600, fontSize: '0.875rem',
-                      color: habit.completed_today ? '#92400E' : '#0F172A',
+                      color: habit.completed_today ? '#F59E0B' : 'var(--text)',
                       textDecoration: habit.completed_today ? 'line-through' : 'none',
-                      opacity: habit.completed_today ? 0.8 : 1,
+                      opacity: habit.completed_today ? 0.85 : 1,
                     }}>
                       {habit.habit_name}
                     </span>
@@ -237,42 +246,63 @@ export default function Wellness() {
           </motion.div>
 
           {/* Cross Insights */}
-          {(crossInsights || insightsLoading) && (
-            <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ marginTop: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <Sparkles size={18} color="#6366F1" />
-                <h3 style={{ fontSize: '1rem' }}>AI Cross-Pillar Insights</h3>
+          <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ marginTop: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <Sparkles size={18} color="#6366F1" />
+              <h3 style={{ fontSize: '1rem' }}>AI Cross-Pillar Insights</h3>
+              {profile?.plan !== 'pro' && (
+                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#D4AF37', background: 'rgba(212,175,55,0.15)', padding: '0.2rem 0.5rem', borderRadius: 99, marginLeft: 'auto' }}>PRO</span>
+              )}
+            </div>
+
+            {profile?.plan !== 'pro' ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 1rem' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔒</div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)', marginBottom: '0.375rem' }}>Cross-Pillar Analysis Locked</h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                  Unlock AI correlation insights connecting your workouts, sleep, and mood patterns.
+                </p>
+                <button 
+                  onClick={() => setIsUpgradeOpen(true)}
+                  className="btn btn-primary" 
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D4AF37)', border: 'none', width: '100%', fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+                >
+                  Unlock Pro Insights
+                </button>
               </div>
-              {insightsLoading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-                  <div style={{ margin: '0 auto 1rem', width: 24, height: 24, border: '3px solid #E2E8F0', borderTopColor: '#6366F1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                  Analysing your 7-day data across all pillars...
-                </div>
-              ) : crossInsights?.insights ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {crossInsights.insights.map((insight, i) => (
-                    <div key={i} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.375rem', color: '#1E293B' }}>{insight.title}</div>
-                      <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, marginBottom: '0.75rem' }}>{insight.detail}</p>
-                      <div style={{ background: '#EEF2FF', borderRadius: 8, padding: '0.625rem', fontSize: '0.8rem', color: '#3730A3', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.75rem' }}>
-                        <Zap size={14} /> {insight.action}
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                        {insight.pillars_involved?.map(p => {
-                          const colors = { mental: '#818CF8', fitness: '#F97316', nutrition: '#22C55E', sleep: '#6366F1', vitals: '#EF4444', wellness: '#F59E0B' }
-                          return (
-                            <span key={p} style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', padding: '0.15rem 0.5rem', borderRadius: 99, background: `${colors[p] || '#94A3B8'}20`, color: colors[p] || '#94A3B8' }}>
-                              {p}
-                            </span>
-                          )
-                        })}
-                      </div>
+            ) : insightsLoading ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
+                <div style={{ margin: '0 auto 1rem', width: 24, height: 24, border: '3px solid #E2E8F0', borderTopColor: '#6366F1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                Analysing your 7-day data across all pillars...
+              </div>
+            ) : crossInsights?.insights ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {crossInsights.insights.map((insight, i) => (
+                  <div key={i} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '1rem' }}>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.375rem', color: 'var(--text)' }}>{insight.title}</div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '0.75rem' }}>{insight.detail}</p>
+                    <div style={{ background: 'rgba(129,140,248,0.15)', borderRadius: 8, padding: '0.625rem', fontSize: '0.8rem', color: '#818CF8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.75rem' }}>
+                      <Zap size={14} /> {insight.action}
                     </div>
-                  ))}
-                </div>
-              ) : null}
-            </motion.div>
-          )}
+                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                      {insight.pillars_involved?.map(p => {
+                        const colors = { mental: '#818CF8', fitness: '#F97316', nutrition: '#22C55E', sleep: '#6366F1', vitals: '#EF4444', wellness: '#F59E0B' }
+                        return (
+                          <span key={p} style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', padding: '0.15rem 0.5rem', borderRadius: 99, background: `${colors[p] || '#94A3B8'}20`, color: colors[p] || '#94A3B8' }}>
+                            {p}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '1rem', fontSize: '0.8rem' }}>
+                Log data across all pillars to trigger AI insights.
+              </div>
+            )}
+          </motion.div>
 
           </div>
 
@@ -333,6 +363,7 @@ export default function Wellness() {
         </div>
       </main>
       {isMobile && <BottomNav />}
+      <UpgradeModal isOpen={isUpgradeOpen} onClose={() => setIsUpgradeOpen(false)} featureName="AI Cross-Pillar Insights" />
     </div>
   )
 }

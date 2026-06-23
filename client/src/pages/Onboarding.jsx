@@ -36,7 +36,7 @@ export default function Onboarding() {
     try {
       await updateProfile({
         name: personal.name,
-        age: parseInt(personal.age),
+        age: parseInt(personal.age) || null,
         gender: personal.gender,
         health_goals: goals,
         condition_profile: { condition, custom: condition === 'Custom' ? condition : null },

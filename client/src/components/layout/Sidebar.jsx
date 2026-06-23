@@ -3,30 +3,53 @@ import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, Brain, Dumbbell, Salad, Moon, 
   Activity, Sparkles, MessageCircle, Users, User,
-  LogOut, ChevronLeft, ChevronRight, FileSearch, Network, Bell, Pill, DollarSign, Sun
+  LogOut, ChevronLeft, ChevronRight, TrendingUp, Sun,
+  Search, Network, Bell, ShieldAlert, FileText, Smartphone
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { useLocation } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { usePWA } from '../../hooks/usePWA'
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/alerts', icon: Bell, label: 'Intelligence Hub', color: '#EF4444' },
-  { to: '/evidence', icon: FileSearch, label: 'Payer Intel', color: '#D4AF37' },
-  { to: '/drug-interaction', icon: Pill, label: 'Drug Interactions', color: '#8B5CF6' },
-  { to: '/cost-analysis', icon: DollarSign, label: 'Cost Analysis', color: '#10B981' },
-  { to: '/frontiers', icon: Network, label: '7 Frontiers', color: '#10B981' },
-  { to: '/mental', icon: Brain, label: 'Mental', color: '#818CF8' },
-  { to: '/fitness', icon: Dumbbell, label: 'Fitness', color: '#F97316' },
-  { to: '/nutrition', icon: Salad, label: 'Nutrition', color: '#22C55E' },
-  { to: '/sleep', icon: Moon, label: 'Sleep', color: '#6366F1' },
-  { to: '/vitals', icon: Activity, label: 'Vitals', color: '#EF4444' },
-  { to: '/wellness', icon: Sparkles, label: 'Wellness', color: '#F59E0B' },
-  { to: '/chat', icon: MessageCircle, label: 'WellBot' },
-  { to: '/friends', icon: Users, label: 'Friends' },
-  { to: '/profile', icon: User, label: 'Profile' },
+const navSections = [
+  {
+    title: 'OVERVIEW',
+    items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/progress', icon: TrendingUp, label: 'Progress', color: '#818CF8' },
+    ]
+  },
+  {
+    title: 'HEALTH PILLARS',
+    items: [
+      { to: '/mental', icon: Brain, label: 'Mental', color: '#818CF8' },
+      { to: '/fitness', icon: Dumbbell, label: 'Fitness', color: '#F97316' },
+      { to: '/nutrition', icon: Salad, label: 'Nutrition', color: '#22C55E' },
+      { to: '/sleep', icon: Moon, label: 'Sleep', color: '#6366F1' },
+      { to: '/vitals', icon: Activity, label: 'Vitals', color: '#EF4444' },
+      { to: '/wellness', icon: Sparkles, label: 'Wellness', color: '#F59E0B' },
+    ]
+  },
+  {
+    title: 'CLINICAL INTEL',
+    items: [
+      { to: '/evidence', icon: Search, label: 'Evidence Search', color: '#10B981' },
+      { to: '/frontiers', icon: Network, label: '7 Frontiers', color: '#8B5CF6' },
+      { to: '/alerts', icon: Bell, label: 'Intelligence Hub', color: '#EF4444' },
+      { to: '/drug-interaction', icon: ShieldAlert, label: 'Drug Interaction', color: '#F97316' },
+      { to: '/cost-analysis', icon: FileText, label: 'Cost Analysis', color: '#F59E0B' },
+    ]
+  },
+  {
+    title: 'SOCIAL & MORE',
+    items: [
+      { to: '/chat', icon: MessageCircle, label: 'WellBot', color: '#22C55E' },
+      { to: '/friends', icon: Users, label: 'Friends', color: '#6366F1' },
+      { to: '/integrations', icon: Smartphone, label: 'Integrations', color: '#818CF8' },
+      { to: '/profile', icon: User, label: 'Profile' },
+    ]
+  },
 ]
 
 export default function Sidebar() {
@@ -35,25 +58,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
-  const [unreadAlerts, setUnreadAlerts] = useState(0)
-
-  useEffect(() => {
-    if (location.pathname === '/alerts') {
-      setUnreadAlerts(0)
-    }
-  }, [location.pathname])
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('sidebar_alerts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'alerts' }, () => {
-        if (window.location.pathname !== '/alerts') {
-          setUnreadAlerts(prev => prev + 1)
-        }
-      })
-      .subscribe()
-    return () => supabase.removeChannel(channel)
-  }, [])
+  const { isInstallable, install } = usePWA()
 
   const handleSignOut = async () => {
     await signOut()
@@ -67,7 +72,7 @@ export default function Sidebar() {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       style={{
         height: '100vh',
-        background: '#ffffff',
+        background: 'var(--surface)',
         borderRight: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
@@ -91,7 +96,7 @@ export default function Sidebar() {
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: '#0F172A' }}
+            style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)' }}
           >
             WellSync
           </motion.span>
@@ -99,66 +104,123 @@ export default function Sidebar() {
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: '1rem 0.5rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {navItems.map(({ to, icon: Icon, label, color }) => {
-          return (
+      <nav style={{ flex: 1, overflowY: 'auto', padding: '0.75rem 0.5rem', display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {navSections.map(section => (
+          <div key={section.title} style={{ marginBottom: '0.5rem' }}>
+            {!collapsed && (
+              <div style={{ fontSize: '0.6rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 800, color: 'var(--muted)', letterSpacing: '0.1em', padding: '0.5rem 0.75rem 0.25rem', textTransform: 'uppercase' }}>
+                {section.title}
+              </div>
+            )}
+            {section.items.map(({ to, icon: Icon, label, color }) => (
+              <NavLink
+                key={to}
+                to={to}
+                style={({ isActive }) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: 10,
+                  textDecoration: 'none',
+                  transition: 'all 0.15s',
+                  background: isActive ? (color ? `${color}18` : 'rgba(99,102,241,0.12)') : 'transparent',
+                  color: isActive ? (color || '#818CF8') : 'var(--muted)',
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '0.85rem',
+                  marginBottom: 2,
+                })}
+              >
+                {({ isActive }) => (
+                  <>
+                    <div style={{
+                      width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: isActive ? (color ? `${color}25` : 'rgba(99,102,241,0.18)') : 'transparent',
+                      transition: 'all 0.15s',
+                    }}>
+                      <Icon size={16} color={isActive ? (color || '#818CF8') : 'var(--muted)'} />
+                    </div>
+                    {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
+                    {isActive && !collapsed && (
+                      <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: 99, background: color || '#818CF8', flexShrink: 0 }} />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
+        ))}
+
+        {profile?.role === 'provider' && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            {!collapsed && (
+              <div style={{ fontSize: '0.6rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 800, color: '#3B82F6', letterSpacing: '0.1em', padding: '0.5rem 0.75rem 0.25rem', textTransform: 'uppercase' }}>
+                PROVIDER HUB
+              </div>
+            )}
             <NavLink
-              key={to}
-              to={to}
+              to="/provider-dashboard"
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                padding: '0.625rem 0.75rem',
+                padding: '0.5rem 0.75rem',
                 borderRadius: 10,
                 textDecoration: 'none',
                 transition: 'all 0.15s',
-                background: isActive ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(79,70,229,0.1))' : 'transparent',
-                color: isActive ? '#4F46E5' : '#64748B',
+                background: isActive ? 'rgba(59, 130, 246, 0.18)' : 'transparent',
+                color: isActive ? '#3B82F6' : 'var(--muted)',
                 fontFamily: 'Plus Jakarta Sans',
-                fontWeight: isActive ? 600 : 500,
-                fontSize: '0.875rem',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.85rem',
+                marginBottom: 2,
               })}
             >
               {({ isActive }) => (
                 <>
                   <div style={{
-                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isActive ? (color ? `${color}20` : 'rgba(99,102,241,0.15)') : 'transparent',
+                    background: isActive ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
+                    transition: 'all 0.15s',
                   }}>
-                    <Icon size={17} color={isActive ? (color || '#4F46E5') : '#94A3B8'} />
+                    <Users size={16} color={isActive ? '#3B82F6' : 'var(--muted)'} />
                   </div>
-                  {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
-                  
-                  {to === '/alerts' && unreadAlerts > 0 ? (
-                    !collapsed && (
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{
-                        marginLeft: 'auto', background: '#EF4444', color: 'white', 
-                        fontSize: '0.7rem', fontWeight: 700, padding: '0.1rem 0.4rem', 
-                        borderRadius: 99, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        {unreadAlerts}
-                      </motion.div>
-                    )
-                  ) : isActive && !collapsed && (
-                    <motion.div
-                      layoutId="sidebar-indicator"
-                      style={{
-                        marginLeft: 'auto', width: 4, height: 4, borderRadius: 99,
-                        background: color || '#4F46E5',
-                      }}
-                    />
+                  {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>Patient Roster</span>}
+                  {isActive && !collapsed && (
+                    <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: 99, background: '#3B82F6', flexShrink: 0 }} />
                   )}
                 </>
               )}
             </NavLink>
-          )
-        })}
+          </div>
+        )}
       </nav>
 
       {/* Bottom section */}
       <div style={{ padding: '0.75rem 0.5rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* PWA Install */}
+        {isInstallable && (
+          <button
+            onClick={install}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.625rem 0.75rem', borderRadius: 10, width: '100%',
+              background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1))', 
+              border: '1px solid rgba(79, 70, 229, 0.2)', cursor: 'pointer',
+              color: '#4F46E5', fontSize: '0.875rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 700,
+              transition: 'all 0.15s', marginBottom: '0.25rem'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(79, 70, 229, 0.15)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(99, 102, 241, 0.1))' }}
+          >
+            <LayoutDashboard size={17} />
+            {!collapsed && <span>Install App</span>}
+          </button>
+        )}
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}

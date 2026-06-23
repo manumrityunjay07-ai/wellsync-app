@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Dumbbell, Salad, Moon, Activity, Sparkles, Bell, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
+import { Link } from 'react-router-dom'
 import Sidebar from '../components/layout/Sidebar'
 import BottomNav from '../components/layout/BottomNav'
 import WellScoreRing from '../components/dashboard/WellScoreRing'
@@ -76,7 +77,7 @@ export default function Dashboard() {
             <p style={{ fontSize: '0.8rem', color: 'var(--muted)', fontFamily: 'Plus Jakarta Sans', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {format(new Date(), 'EEEE, d MMMM')}
             </p>
-            <h1 style={{ fontSize: '1.6rem', color: '#0F172A' }}>
+            <h1 style={{ fontSize: '1.6rem', color: 'var(--text)' }}>
               {greeting()}, {profile?.name?.split(' ')[0] || 'there'} 👋
             </h1>
           </div>
@@ -84,7 +85,7 @@ export default function Dashboard() {
             <button
               onClick={() => setShowNotifs(!showNotifs)}
               className="btn btn-ghost"
-              style={{ borderRadius: 12, border: '1px solid var(--border)', background: 'white', position: 'relative' }}
+              style={{ borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', position: 'relative' }}
             >
               <Bell size={18} color="var(--muted)" />
               {notifs.length > 0 && (
@@ -96,7 +97,7 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 style={{
-                  position: 'absolute', top: '120%', right: 0, background: 'white',
+                  position: 'absolute', top: '120%', right: 0, background: 'var(--surface)',
                   border: '1px solid var(--border)', borderRadius: 16, width: 280,
                   boxShadow: '0 10px 25px rgba(0,0,0,0.05)', zIndex: 50, overflow: 'hidden'
                 }}
@@ -118,7 +119,7 @@ export default function Dashboard() {
                         <div style={{ marginTop: 2 }}>
                           {n.type === 'warning' ? <Activity size={16} color="#F97316" /> : <Sparkles size={16} color="#6366F1" />}
                         </div>
-                        <div style={{ fontSize: '0.85rem', lineHeight: 1.4, color: '#1E293B' }}>{n.msg}</div>
+                        <div style={{ fontSize: '0.85rem', lineHeight: 1.4, color: 'var(--text)' }}>{n.msg}</div>
                       </div>
                     ))}
                   </div>
@@ -162,7 +163,7 @@ export default function Dashboard() {
 
         {/* 6 Pillar Cards */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1rem', color: '#0F172A', marginBottom: '1rem' }}>Today's Pillars</h2>
+          <h2 style={{ fontSize: '1rem', color: 'var(--text)', marginBottom: '1rem' }}>Today's Pillars</h2>
           <div style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
@@ -203,7 +204,7 @@ export default function Dashboard() {
               { label: 'Log your vitals', done: !!todayScore?.vitals_score, path: '/vitals', emoji: '❤️' },
               { label: 'Complete a habit', done: !!todayScore?.wellness_score, path: '/wellness', emoji: '✨' },
             ].map((task, i) => (
-              <a key={i} href={task.path} style={{ textDecoration: 'none' }}>
+              <Link key={i} to={task.path} style={{ textDecoration: 'none' }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1rem',
                   background: task.done ? 'rgba(16,185,129,0.08)' : 'var(--bg)',
@@ -215,7 +216,7 @@ export default function Dashboard() {
                   </div>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: task.done ? '#10B981' : 'var(--text)', textDecoration: task.done ? 'line-through' : 'none' }}>{task.emoji} {task.label}</span>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </motion.div>

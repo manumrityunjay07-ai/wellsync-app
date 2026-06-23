@@ -39,7 +39,7 @@ const planLimits = async (req, res, next) => {
       }).eq('id', userId)
     }
 
-    const FREE_LIMIT = 50
+    const FREE_LIMIT = 5
     if (plan === 'free' && callsToday >= FREE_LIMIT) {
       return res.status(429).json({ 
         error: 'Daily AI limit reached', 
