@@ -71,8 +71,9 @@ export default function Integrations() {
       }
       
       const mockSleep = {
-        duration_hours: 7.5,
-        quality: 85,
+        duration_hrs: 7.5,
+        quality_rating: 4,
+        restedness_rating: 4,
         notes: `Auto-detected by ${name}`
       }
 
