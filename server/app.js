@@ -51,7 +51,7 @@ app.use('/api/friends', require('./routes/friends'))
 app.use('/api/ai', aiLimiter, require('./routes/ai'))
 app.use('/api/user', require('./routes/user'))
 app.use('/api/provider', require('./routes/provider'))
-
+app.use('/api/integrations', require('./routes/integrations'))
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'WellSync API' }))
 

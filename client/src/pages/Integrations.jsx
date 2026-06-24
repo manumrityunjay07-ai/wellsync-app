@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Smartphone, Activity, RefreshCw, CheckCircle2, Plus, Zap, AlertCircle } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { useAuth } from '../context/AuthContext'
 
 const integrationsList = [
   {
@@ -36,13 +37,57 @@ const integrationsList = [
 ]
 
 export default function Integrations() {
+  const { user } = useAuth()
   const [connected, setConnected] = useState({ apple_health: true }) // Mock starting with one connected
   const [syncing, setSyncing] = useState(null)
   const [connecting, setConnecting] = useState(null)
 
-  const handleToggleConnect = (id) => {
+  useEffect(() => {
+    // Check url params for success/error from oauth redirect
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('success')) {
+      toast.success('Successfully connected to Google Fit!')
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    } else if (params.get('error')) {
+      toast.error('Failed to connect to Google Fit.')
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+
+    // Fetch actual status
+    const fetchStatus = async () => {
+      try {
+        const { data } = await api.get('/api/integrations/status')
+        if (data.googleConnected) {
+          setConnected(prev => ({ ...prev, google_fit: true }))
+        }
+      } catch (err) {
+        console.error('Failed to fetch integration status', err)
+      }
+    }
+    fetchStatus()
+  }, [])
+
+  const handleToggleConnect = async (id) => {
+    if (id === 'google_fit') {
+      if (connected[id]) {
+        // Disconnect
+        try {
+          await api.post('/api/integrations/google/disconnect')
+          setConnected(prev => ({ ...prev, [id]: false }))
+          toast.success('Google Fit disconnected.')
+        } catch (err) {
+          toast.error('Failed to disconnect.')
+        }
+      } else {
+        // Redirect to OAuth
+        window.location.href = `http://localhost:5000/api/integrations/google/auth?userId=${user.id}`
+      }
+      return
+    }
+
     if (connected[id]) {
-      // Disconnect
+      // Disconnect mock
       setConnected(prev => ({ ...prev, [id]: false }))
       toast.success('Device disconnected.')
     } else {
@@ -61,28 +106,33 @@ export default function Integrations() {
     setSyncing(id)
 
     try {
-      // Create some mock data
-      const mockFitness = {
-        exercise_name: 'Running',
-        duration_mins: 45,
-        calories_burned: 420,
-        intensity: 'high',
-        notes: `Synced from ${name}`
-      }
-      
-      const mockSleep = {
-        duration_hrs: 7.5,
-        quality_rating: 4,
-        restedness_rating: 4,
-        notes: `Auto-detected by ${name}`
-      }
+      if (id === 'google_fit') {
+        const { data } = await api.post('/api/integrations/google/sync')
+        toast.success(`Google Fit synced! Found ${data.steps} steps over 24h.`)
+      } else {
+        // Create some mock data
+        const mockFitness = {
+          exercise_name: 'Running',
+          duration_mins: 45,
+          calories_burned: 420,
+          intensity: 'high',
+          notes: `Synced from ${name}`
+        }
+        
+        const mockSleep = {
+          duration_hrs: 7.5,
+          quality_rating: 4,
+          restedness_rating: 4,
+          notes: `Auto-detected by ${name}`
+        }
 
-      await api.post('/api/fitness/log', mockFitness)
-      await api.post('/api/sleep/log', mockSleep)
+        await api.post('/api/fitness/log', mockFitness)
+        await api.post('/api/sleep/log', mockSleep)
 
-      toast.success(`${name} data synced successfully!`)
+        toast.success(`${name} mock data synced successfully!`)
+      }
     } catch (err) {
-      toast.error('Failed to sync device data.')
+      toast.error(`Failed to sync ${name} data.`)
     } finally {
       setSyncing(null)
     }
@@ -188,7 +238,7 @@ export default function Integrations() {
           <div>
             <h4 style={{ fontSize: '1rem', marginBottom: '0.25rem', color: '#3B82F6' }}>How syncing works</h4>
             <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.5 }}>
-              WellSync pulls your recent data directly from connected APIs securely. For demonstration purposes, clicking "Sync Now" will immediately generate and inject mock Fitness and Sleep data into your timeline. Go check your Home dashboard after syncing!
+              WellSync pulls your recent data directly from connected APIs securely. Google Fit is a direct integration. Other connections like Apple Health will generate mock data for demonstration purposes. Go check your Home dashboard after syncing!
             </p>
           </div>
         </div>
