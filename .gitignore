@@ -1,0 +1,34 @@
+# Temporary / scratch files
+temp_js.js
+temp_js2.js
+temp_*.js
+temp_*.ts
+
+# Environment files (also enforced in sub-directories)
+.env
+.env.*
+.env.local
+
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
