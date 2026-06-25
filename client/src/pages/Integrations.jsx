@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Smartphone, Activity, RefreshCw, CheckCircle2, Plus, Zap, AlertCircle } from 'lucide-react'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
+import Sidebar from '../components/layout/Sidebar'
+import BottomNav from '../components/layout/BottomNav'
 
 const integrationsList = [
   {
@@ -41,6 +43,13 @@ export default function Integrations() {
   const [connected, setConnected] = useState({ apple_health: true }) // Mock starting with one connected
   const [syncing, setSyncing] = useState(null)
   const [connecting, setConnecting] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     // Check url params for success/error from oauth redirect
@@ -76,12 +85,12 @@ export default function Integrations() {
           await api.post('/api/integrations/google/disconnect')
           setConnected(prev => ({ ...prev, [id]: false }))
           toast.success('Google Fit disconnected.')
-        } catch (err) {
+        } catch (_err) {
           toast.error('Failed to disconnect.')
         }
       } else {
         // Redirect to OAuth
-        window.location.href = `http://localhost:5000/api/integrations/google/auth?userId=${user.id}`
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/integrations/google/auth?userId=${user.id}`
       }
       return
     }
@@ -131,7 +140,7 @@ export default function Integrations() {
 
         toast.success(`${name} mock data synced successfully!`)
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error(`Failed to sync ${name} data.`)
     } finally {
       setSyncing(null)
@@ -139,9 +148,12 @@ export default function Integrations() {
   }
 
   return (
-    <div className="page fade-in">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+    <div style={{ display: 'flex' }}>
+      {!isMobile && <Sidebar />}
+      <main className="main-content" style={{ flex: 1 }}>
+        <div className="page fade-in">
+          <div style={{ marginBottom: '2rem' }}>
+            <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Zap size={32} color="var(--primary)" />
           Device Integrations
         </h1>
@@ -243,6 +255,9 @@ export default function Integrations() {
           </div>
         </div>
       </div>
+    </div>
+      </main>
+      {isMobile && <BottomNav />}
     </div>
   )
 }

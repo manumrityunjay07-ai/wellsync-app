@@ -107,7 +107,7 @@ router.post('/google/sync', auth, async (req, res, next) => {
          duration_mins: Math.round(totalSteps / 100),
          intensity: 'Low',
          muscle_groups: ['Legs'],
-         energy_after: 'Good'
+         energy_after: 7
        })
     } else {
        await supabase.from('workout_logs').insert({
@@ -115,8 +115,8 @@ router.post('/google/sync', auth, async (req, res, next) => {
          exercise_name: 'Google Fit Checked (0 Steps)',
          duration_mins: 0,
          intensity: 'Low',
-         muscle_groups: ['None'],
-         energy_after: 'Normal'
+         muscle_groups: ['Cardio'],
+         energy_after: 5
        })
     }
     

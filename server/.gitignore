@@ -1,2 +1,5 @@
 .env
 node_modules
+
+# Runtime data — contains live OAuth tokens, must never be committed
+data/integrations.json
