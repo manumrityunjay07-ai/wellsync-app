@@ -30,7 +30,9 @@ import ResetPassword from './pages/ResetPassword'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
 import ProviderDashboard from './pages/ProviderDashboard'
-import Integrations from './pages/Integrations'
+import Pricing from './pages/Pricing'
+
+import PremiumGuard from './components/layout/PremiumGuard'
 
 import React from 'react'
 
@@ -99,11 +101,12 @@ function AppRoutes() {
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><WellScoreProvider><Dashboard /></WellScoreProvider></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><WellScoreProvider><Progress /></WellScoreProvider></ProtectedRoute>} />
-      <Route path="/evidence" element={<ProtectedRoute><Evidence /></ProtectedRoute>} />
-      <Route path="/frontiers" element={<ProtectedRoute><FrontiersGraph /></ProtectedRoute>} />
-      <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
-      <Route path="/drug-interaction" element={<ProtectedRoute><DrugInteraction /></ProtectedRoute>} />
-      <Route path="/cost-analysis" element={<ProtectedRoute><CostAnalysis /></ProtectedRoute>} />
+      <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+      <Route path="/evidence" element={<ProtectedRoute><PremiumGuard featureName="Evidence Search"><Evidence /></PremiumGuard></ProtectedRoute>} />
+      <Route path="/frontiers" element={<ProtectedRoute><PremiumGuard featureName="7 Frontiers Graph"><FrontiersGraph /></PremiumGuard></ProtectedRoute>} />
+      <Route path="/alerts" element={<ProtectedRoute><PremiumGuard featureName="Intelligence Hub"><Alerts /></PremiumGuard></ProtectedRoute>} />
+      <Route path="/drug-interaction" element={<ProtectedRoute><PremiumGuard featureName="Drug Interaction Checker"><DrugInteraction /></PremiumGuard></ProtectedRoute>} />
+      <Route path="/cost-analysis" element={<ProtectedRoute><PremiumGuard featureName="Cost Analysis"><CostAnalysis /></PremiumGuard></ProtectedRoute>} />
       <Route path="/demo" element={<Demo />} />
       <Route path="/share/:token" element={<Share />} />
       <Route path="/mental" element={<ProtectedRoute><Mental /></ProtectedRoute>} />
@@ -112,9 +115,9 @@ function AppRoutes() {
       <Route path="/sleep" element={<ProtectedRoute><Sleep /></ProtectedRoute>} />
       <Route path="/vitals" element={<ProtectedRoute><Vitals /></ProtectedRoute>} />
       <Route path="/wellness" element={<ProtectedRoute><WellScoreProvider><Wellness /></WellScoreProvider></ProtectedRoute>} />
-      <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+      <Route path="/chat" element={<ProtectedRoute><PremiumGuard featureName="WellBot AI Assistant"><Chat /></PremiumGuard></ProtectedRoute>} />
       <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-      <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+
       <Route path="/profile" element={<ProtectedRoute><WellScoreProvider><Profile /></WellScoreProvider></ProtectedRoute>} />
       <Route path="/provider-dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />

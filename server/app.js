@@ -23,6 +23,10 @@ app.use(cors({
 }))
 app.use(helmet())
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
+
+// Stripe Webhook needs the raw body, so we mount it BEFORE express.json()
+app.use('/api/stripe', require('./routes/stripe'))
+
 app.use(express.json({ limit: '1mb' }))
 
 // Rate limiters

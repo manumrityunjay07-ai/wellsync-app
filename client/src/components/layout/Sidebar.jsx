@@ -1,15 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { 
-  LayoutDashboard, Brain, Dumbbell, Salad, Moon, 
+import { LayoutDashboard, Brain, Dumbbell, Salad, Moon, 
   Activity, Sparkles, MessageCircle, Users, User,
   LogOut, ChevronLeft, ChevronRight, TrendingUp, Sun,
-  Search, Network, Bell, ShieldAlert, FileText, Smartphone
+  Search, Network, Bell, ShieldAlert, FileText
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
-import { useLocation } from 'react-router-dom'
 import { usePWA } from '../../hooks/usePWA'
 
 const navSections = [
@@ -46,7 +44,6 @@ const navSections = [
     items: [
       { to: '/chat', icon: MessageCircle, label: 'WellBot', color: '#22C55E' },
       { to: '/friends', icon: Users, label: 'Friends', color: '#6366F1' },
-      { to: '/integrations', icon: Smartphone, label: 'Integrations', color: '#818CF8' },
       { to: '/profile', icon: User, label: 'Profile' },
     ]
   },
@@ -56,7 +53,6 @@ export default function Sidebar() {
   const { signOut, profile } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
-  const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const { isInstallable, install } = usePWA()
 
@@ -96,9 +92,15 @@ export default function Sidebar() {
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)' }}
+            style={{ fontFamily: 'Plus Jakarta Sans', fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             WellSync
+            {profile?.subscription_tier === 'pro' && (
+              <span style={{
+                fontSize: '0.6rem', background: 'linear-gradient(135deg, #6366F1, #A855F7)', 
+                color: 'white', padding: '0.15rem 0.4rem', borderRadius: 4, letterSpacing: '0.05em'
+              }}>PRO</span>
+            )}
           </motion.span>
         )}
       </div>
@@ -201,6 +203,25 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div style={{ padding: '0.75rem 0.5rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        
+        {/* Pro Upgrade */}
+        {profile?.subscription_tier !== 'pro' && (
+          <button
+            onClick={() => navigate('/pricing')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.625rem 0.75rem', borderRadius: 10, width: '100%',
+              background: 'linear-gradient(135deg, #6366F1, #818CF8)', border: 'none', cursor: 'pointer',
+              color: 'white', fontSize: '0.875rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 700,
+              transition: 'all 0.15s', marginBottom: '0.25rem',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
+            }}
+          >
+            <Sparkles size={17} />
+            {!collapsed && <span>Upgrade to Pro</span>}
+          </button>
+        )}
+
         {/* PWA Install */}
         {isInstallable && (
           <button
