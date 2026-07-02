@@ -341,21 +341,6 @@ export default function Profile() {
             <button
               className="btn btn-secondary"
               style={{ width: '100%', justifyContent: 'flex-start', gap: '0.75rem' }}
-              onClick={async () => {
-                try {
-                  await toggleRole()
-                  toast.success(`Switched to ${profile?.role === 'provider' ? 'Patient' : 'Provider'} Mode!`)
-                } catch {
-                  toast.error('Failed to switch roles')
-                }
-              }}
-            >
-              <Users size={16} color="var(--primary)" />
-              Switch to {profile?.role === 'provider' ? 'Patient' : 'Provider'} Mode
-            </button>
-            <button
-              className="btn btn-secondary"
-              style={{ width: '100%', justifyContent: 'flex-start', gap: '0.75rem' }}
               onClick={handleExport}
             >
               <Download size={16} color="#22C55E" />

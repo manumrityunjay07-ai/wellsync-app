@@ -29,7 +29,6 @@ import Terms from './pages/Terms'
 import ResetPassword from './pages/ResetPassword'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
-import ProviderDashboard from './pages/ProviderDashboard'
 
 import PremiumGuard from './components/layout/PremiumGuard'
 
@@ -117,7 +116,6 @@ function AppRoutes() {
       <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
 
       <Route path="/profile" element={<ProtectedRoute><WellScoreProvider><Profile /></WellScoreProvider></ProtectedRoute>} />
-      <Route path="/provider-dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )

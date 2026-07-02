@@ -149,50 +149,6 @@ export default function Sidebar() {
           </div>
         ))}
 
-        {profile?.role === 'provider' && (
-          <div style={{ marginBottom: '0.5rem' }}>
-            {!collapsed && (
-              <div style={{ fontSize: '0.6rem', fontFamily: 'Plus Jakarta Sans', fontWeight: 800, color: '#3B82F6', letterSpacing: '0.1em', padding: '0.5rem 0.75rem 0.25rem', textTransform: 'uppercase' }}>
-                PROVIDER HUB
-              </div>
-            )}
-            <NavLink
-              to="/provider-dashboard"
-              style={({ isActive }) => ({
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.5rem 0.75rem',
-                borderRadius: 10,
-                textDecoration: 'none',
-                transition: 'all 0.15s',
-                background: isActive ? 'rgba(59, 130, 246, 0.18)' : 'transparent',
-                color: isActive ? '#3B82F6' : 'var(--muted)',
-                fontFamily: 'Plus Jakarta Sans',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '0.85rem',
-                marginBottom: 2,
-              })}
-            >
-              {({ isActive }) => (
-                <>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isActive ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-                    transition: 'all 0.15s',
-                  }}>
-                    <Users size={16} color={isActive ? '#3B82F6' : 'var(--muted)'} />
-                  </div>
-                  {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>Patient Roster</span>}
-                  {isActive && !collapsed && (
-                    <div style={{ marginLeft: 'auto', width: 5, height: 5, borderRadius: 99, background: '#3B82F6', flexShrink: 0 }} />
-                  )}
-                </>
-              )}
-            </NavLink>
-          </div>
-        )}
       </nav>
 
       {/* Bottom section */}
