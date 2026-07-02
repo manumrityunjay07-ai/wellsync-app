@@ -30,7 +30,6 @@ import ResetPassword from './pages/ResetPassword'
 import Progress from './pages/Progress'
 import Profile from './pages/Profile'
 import ProviderDashboard from './pages/ProviderDashboard'
-import Pricing from './pages/Pricing'
 
 import PremiumGuard from './components/layout/PremiumGuard'
 
@@ -101,7 +100,6 @@ function AppRoutes() {
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><WellScoreProvider><Dashboard /></WellScoreProvider></ProtectedRoute>} />
       <Route path="/progress" element={<ProtectedRoute><WellScoreProvider><Progress /></WellScoreProvider></ProtectedRoute>} />
-      <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
       <Route path="/evidence" element={<ProtectedRoute><PremiumGuard featureName="Evidence Search"><Evidence /></PremiumGuard></ProtectedRoute>} />
       <Route path="/frontiers" element={<ProtectedRoute><PremiumGuard featureName="7 Frontiers Graph"><FrontiersGraph /></PremiumGuard></ProtectedRoute>} />
       <Route path="/alerts" element={<ProtectedRoute><PremiumGuard featureName="Intelligence Hub"><Alerts /></PremiumGuard></ProtectedRoute>} />
